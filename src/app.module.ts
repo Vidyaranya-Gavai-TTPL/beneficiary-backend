@@ -12,6 +12,9 @@ import { ContentService } from './content/content.service';
 import { ResponseCache } from './entity/response.entity';
 import { UserModule } from './modules/users/users.module';
 import { User } from './entity/user.entity';
+import { UserRolesModule } from './modules/user_roles/user_roles.module';
+import { Role } from '@entities/role.entity';
+import { UserRole } from '@entities/user_roles.entity';
 
 @Module({
   imports: [
@@ -35,13 +38,14 @@ import { User } from './entity/user.entity';
         logging: true,
       }),
     }),
-    TypeOrmModule.forFeature([ResponseCache, User]),
+    TypeOrmModule.forFeature([ResponseCache, User, UserRole, Role]),
     {
       ...HttpModule.register({}),
       global: true,
     },
     ContentModule,
     UserModule,
+    UserRolesModule,
   ],
   controllers: [AppController],
   providers: [
