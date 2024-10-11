@@ -15,6 +15,7 @@ import { User } from './entity/user.entity';
 import { UserRolesModule } from './modules/user_roles/user_roles.module';
 import { Role } from '@entities/role.entity';
 import { UserRole } from '@entities/user_roles.entity';
+import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { UserRole } from '@entities/user_roles.entity';
     ContentModule,
     UserModule,
     UserRolesModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
