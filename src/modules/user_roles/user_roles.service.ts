@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserRole } from '@entities/user_roles.entity';
-import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { CreateUserRoleDto } from './dto/create-user-role.dto';
 
 @Injectable()
@@ -17,7 +16,6 @@ export class UserRolesService {
     const userRole = this.userRolesRepository.create(createUserRoleDto);
     userRole.created_at = new Date();
     userRole.updated_at = new Date();
-    console.log('------------------------------------', userRole);
 
     return await this.userRolesRepository.save(userRole);
   }
@@ -26,7 +24,7 @@ export class UserRolesService {
   async update(
     user_id: string,
     role_id: string,
-    updateUserRoleDto: UpdateUserRoleDto,
+    updateUserRoleDto: CreateUserRoleDto,
   ): Promise<UserRole> {
     const userRole = await this.userRolesRepository.findOne({
       where: { user_id: user_id, role_id: role_id },

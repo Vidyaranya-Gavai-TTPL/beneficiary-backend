@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { UserRolesService } from './user_roles.service';
 import { UserRole } from '@entities/user_roles.entity';
-import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { CreateUserRoleDto } from './dto/create-user-role.dto';
 
@@ -41,7 +40,7 @@ export class UserRolesController {
   async update(
     @Query('user_id') user_id: string,
     @Query('role_id') role_id: string,
-    @Body() updateUserRoleDto: UpdateUserRoleDto,
+    @Body() updateUserRoleDto: CreateUserRoleDto,
   ): Promise<UserRole> {
     return this.userRolesService.update(user_id, role_id, updateUserRoleDto);
   }

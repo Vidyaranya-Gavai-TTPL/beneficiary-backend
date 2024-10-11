@@ -20,7 +20,7 @@ export class CreateUserRoleDto {
 
   @ApiProperty({
     example: 'admin',
-    description: 'The slug for the role (e.g., admin, user, editor)',
+    description: 'The slug for the role (e.g., admin, beneficiary)',
   })
   @IsString()
   @IsNotEmpty()
