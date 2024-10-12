@@ -20,7 +20,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Version('1')
-  @Post('create')
+  @Post('/create')
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
@@ -29,7 +29,7 @@ export class UserController {
   }
 
   @Version('1')
-  @Put('update/:userId')
+  @Put('/update/:userId')
   @ApiOperation({ summary: 'Update an existing user' })
   @ApiResponse({ status: 200, description: 'User successfully updated' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -41,7 +41,7 @@ export class UserController {
   }
 
   @Version('1')
-  @Get('get_one/:userId')
+  @Get('/get_one/:userId')
   @ApiOperation({ summary: 'Get a user by userId' })
   @ApiResponse({ status: 200, description: 'User data' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -50,7 +50,7 @@ export class UserController {
   }
 
   @Version('1')
-  @Delete('delete/:userId')
+  @Delete('/delete/:userId')
   @ApiOperation({ summary: 'Delete a user by userId' })
   @ApiResponse({ status: 200, description: 'User successfully deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })

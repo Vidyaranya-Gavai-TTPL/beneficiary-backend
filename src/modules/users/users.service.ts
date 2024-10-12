@@ -40,4 +40,23 @@ export class UserService {
     const user = await this.findOne(user_id);
     await this.userRepository.remove(user);
   }
+  // Method to check if mobile number exists
+  async findByMobile(mobile: string): Promise<User | undefined> {
+    return await this.userRepository.findOne({
+      where: { phone_number: mobile },
+    });
+  }
+
+  async createKeycloakData(body): Promise<User> {
+    const user = this.userRepository.create({
+      first_name: body.first_name,
+      last_name: body.last_name,
+      email: body.email,
+      phone_number: body.mobile,
+      sso_provider: 'keycloak',
+      sso_id: body.keycloak_id,
+      created_at: new Date(),
+    });
+    return await this.userRepository.save(user);
+  }
 }
