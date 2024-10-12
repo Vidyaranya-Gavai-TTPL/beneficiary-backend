@@ -12,6 +12,7 @@ import { ContentService } from './content/content.service';
 import { ResponseCache } from './entity/response.entity';
 import { UserModule } from './modules/users/users.module';
 import { User } from './entity/user.entity';
+import { EncryptionService } from './common/helper/encryptionService';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { User } from './entity/user.entity';
     ProxyService,
     LoggerService,
     ContentService,
+    EncryptionService
   ],
 })
 export class AppModule {}

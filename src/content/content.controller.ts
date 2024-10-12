@@ -13,7 +13,7 @@ export class ContentController {
     @Post('/search')
     async getContent(@Request() request, @Body() body) {
         this.logger.log('POST /search')
-        return this.contentService.getJobs(body)
+        return this.contentService.getJobs(body.filters)
     }
 
     @Post('/responseSearch')
@@ -102,5 +102,16 @@ export class ContentController {
         this.logger.log('GET /telemetryAnalytics')
         return this.contentService.telemetryAnalytics1(body)
     }
+
+    @Post("/encrypt")
+    async encrption (@Request() request, @Body() body){
+       return this.contentService.encryption(body) 
+    }
+
+    @Post("/decrypt")
+    async decryption (@Request() request, @Body() body: { encryptedData: string }){
+       return this.contentService.decryption(body.encryptedData) 
+    }
+
 
 }
