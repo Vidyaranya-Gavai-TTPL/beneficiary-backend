@@ -120,23 +120,23 @@ export class ContentController {
   })
   getCertificates() {
     const certificates = [
-      { name: 'Income Certificate', code: 'Income_Certificate' },
-      { name: 'Caste Certificate', code: 'Caste_Certificate' },
-      { name: 'Disability Certificate', code: 'Disability_Certificate' },
-      { name: 'Ration Card/BPL Card', code: 'Ration_Card_BPL_Card' },
-      { name: 'Domicile Certificate', code: 'Domicile_Certificate' },
+      { name: 'Income Certificate', code: 'income_certificate' },
+      { name: 'Caste Certificate', code: 'caste_certificate' },
+      { name: 'Disability Certificate', code: 'disability_certificate' },
+      { name: 'Ration Card/BPL Card', code: 'ration_card_bpl_card' },
+      { name: 'Domicile Certificate', code: 'domicile_certificate' },
       {
         name: 'Business Certificate of Tehsildar',
-        code: 'Business_Certificate_of_Tehsildar',
+        code: 'business_certificate_of_tehsildar',
       },
-      { name: 'Work Contract Certificate', code: 'Work_Contract_Certificate' },
+      { name: 'Work Contract Certificate', code: 'work_contract_certificate' },
       {
         name: 'Hostel Accommodation Certificate',
-        code: 'Hostel_Accommodation_Certificate',
+        code: 'hostel_accommodation_certificate',
       },
-      { name: 'Enrolment Certificate', code: 'Enrolment_Certificate' },
+      { name: 'Enrolment Certificate', code: 'enrolment_certificate' },
       { name: 'Marksheet', code: 'Marksheet' },
-      { name: 'Birth Certificate', code: 'Birth_Certificate' },
+      { name: 'Birth Certificate', code: 'birth_certificate' },
     ];
 
     return {

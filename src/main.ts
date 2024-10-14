@@ -45,10 +45,11 @@ async function bootstrap() {
     .setTitle('UBI Beneficiary API')
     .setDescription('API documentation for UBI Beneficiary')
     .setVersion('1.0')
+    .addServer('/api')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/api/docs', app, document); // Route for Swagger UI
+  SwaggerModule.setup('/docs', app, document); // Route for Swagger UI
 
   await app.listen(process.env.PORT);
 }
