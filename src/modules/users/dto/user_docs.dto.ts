@@ -72,7 +72,6 @@ export class CreateUserDocDTO {
     example: 'Document data as base64 string',
     required: false,
   })
-  @IsString()
   @IsOptional()
   doc_data?: string;
 
