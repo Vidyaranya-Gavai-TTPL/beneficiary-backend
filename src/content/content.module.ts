@@ -7,11 +7,12 @@ import { ContentController } from './content.controller';
 import { ContentService } from './content.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ResponseCache } from 'src/entity/response.entity';
+import { EncryptionService } from 'src/common/helper/encryptionService';
 
 
 @Module({
   imports: [ScheduleModule.forRoot(), TypeOrmModule.forFeature([ResponseCache])],
   controllers: [ContentController],
-  providers: [ContentService, HasuraService, ProxyService, LoggerService]
+  providers: [ContentService, HasuraService, ProxyService, LoggerService,EncryptionService]
 })
 export class ContentModule {}
