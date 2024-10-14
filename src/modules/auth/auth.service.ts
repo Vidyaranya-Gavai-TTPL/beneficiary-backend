@@ -174,4 +174,31 @@ export class AuthService {
       });
     }
   }
+
+  public async logout(req, response) {
+    const accessToken = req.body.access_token;
+    const refreshToken = req.body.refresh_token; // Optional: if provided
+
+    try {
+      // Revoke the access token
+      await this.keycloakService.revokeToken(accessToken);
+
+      // Optionally, revoke the refresh token if provided
+      if (refreshToken) {
+        await this.keycloakService.revokeToken(refreshToken, 'refresh_token');
+      }
+
+      // Return successful logout response
+      return response.status(200).send({
+        success: true,
+        message: 'LOGGED OUT SUCCESSFULLY',
+      });
+    } catch (error) {
+      console.error('Error during logout:', error.message);
+      return response.status(500).send({
+        success: false,
+        message: 'LOGOUT_FAILED',
+      });
+    }
+  }
 }

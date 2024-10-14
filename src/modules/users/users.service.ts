@@ -6,7 +6,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDocDTO } from './dto/user_docs.dto';
 import { UserDoc } from '@entities/user_docs.entity';
-
+import { CreateUserInfoDto } from './dto/create-user-info.dto';
+import { UserInfo } from '@entities/user_info.entity';
 @Injectable()
 export class UserService {
   constructor(
@@ -14,6 +15,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserDoc)
     private readonly userDocsRepository: Repository<UserDoc>,
+    @InjectRepository(UserInfo)
+    private readonly userInfoRepository: Repository<UserInfo>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -67,5 +70,21 @@ export class UserService {
   async createUserDoc(createUserDocDto: CreateUserDocDTO): Promise<UserDoc> {
     const newUserDoc = this.userDocsRepository.create(createUserDocDto);
     return await this.userDocsRepository.save(newUserDoc);
+  }
+  // User info
+  async createUserInfo(
+    createUserInfoDto: CreateUserInfoDto,
+  ): Promise<UserInfo> {
+    const userInfo = this.userInfoRepository.create(createUserInfoDto);
+    return await this.userInfoRepository.save(userInfo);
+  }
+
+  async updateUserInfo(
+    user_id: string,
+    updateUserInfoDto: CreateUserInfoDto,
+  ): Promise<UserInfo> {
+    const userInfo = await this.findOne(user_id); // Check if the user info record exists
+    Object.assign(userInfo, updateUserInfoDto); // Update the record with new values
+    return await this.userInfoRepository.save(userInfo); // Save the updated record
   }
 }

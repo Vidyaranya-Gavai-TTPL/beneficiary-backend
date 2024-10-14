@@ -336,4 +336,34 @@ export class KeycloakService {
       console.log('getUserKeycloakToken', e.message);
     }
   }
+  public async revokeToken(
+    token: string,
+    tokenTypeHint: string = 'access_token',
+  ) {
+    const url = `${this.keycloak_url}/realms/${this.realm_name_app}/protocol/openid-connect/revoke`;
+
+    let payload = new URLSearchParams();
+    payload.append('client_id', this.client_name_app);
+    payload.append('client_secret', this.keycloak_admin_cli_client_secret);
+    payload.append('token', token);
+    payload.append('token_type_hint', tokenTypeHint);
+
+    const config: AxiosRequestConfig = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    };
+
+    try {
+      const observable = this.httpService.post(url, payload.toString(), config);
+      const response = await lastValueFrom(observable);
+      return response.data;
+    } catch (error) {
+      console.error('Error revoking token:', error.message);
+      throw new HttpException(
+        'TOKEN_REVOCATION_FAILED',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
