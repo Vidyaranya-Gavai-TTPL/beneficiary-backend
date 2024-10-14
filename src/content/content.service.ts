@@ -7,6 +7,7 @@ import { CreateOrderDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ResponseCache } from 'src/entity/response.entity';
+import { EncryptionService } from 'src/common/helper/encryptionService';
 const crypto = require('crypto');
 
 @Injectable()
@@ -22,14 +23,26 @@ export class ContentService {
       private readonly hasuraService: HasuraService,
       private readonly proxyService: ProxyService,
       private readonly logger: LoggerService,
+      private readonly encrypt : EncryptionService,
       @InjectRepository(ResponseCache)
       private readonly responseCacheRepository: Repository<ResponseCache>,
    ) { }
 
-   async getJobs(getContentdto) {
-      return this.hasuraService.findJobsCache(getContentdto);
+   async getJobs(filters) {
+      return this.hasuraService.findJobsCache(filters);
    }
 
+   async encryption(data){
+      return this.encrypt.encrypt(data)
+
+   }
+
+   async decryption(data){
+      return this.encrypt.decrypt(data)
+
+   }
+
+   
    async createOrder(createOrderDto: CreateOrderDto) {
       let createUserDto = { name: createOrderDto.name, gender: createOrderDto.gender, phone: createOrderDto.phone, email: createOrderDto.email }
       let findUser = await this.hasuraService.findSeekerUser(createUserDto.email);

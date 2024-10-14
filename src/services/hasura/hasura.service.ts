@@ -18,21 +18,21 @@ export class HasuraService {
     console.log('response_cache_db', this.response_cache_db);
   }
 
-  async findJobsCache(getContentdto) {
+  async findJobsCache(filters) {
     console.log('searching jobs from ' + this.cache_db);
 
-    let result = 'where: {';
-    Object.entries(getContentdto).forEach(([key, value]) => {
-      console.log(`${key}: ${value}`);
+    // let result = 'where: {';
+    // Object.entries(getContentdto).forEach(([key, value]) => {
+    //   console.log(`${key}: ${value}`);
 
-      console.log('557', `${key}: ${value}`);
-      result += `${key}: {_eq: "${value}"}, `;
-    });
-    result += '}';
-    console.log('result', result);
+    //   console.log('557', `${key}: ${value}`);
+    //   result += `${key}: {_eq: "${value}"}, `;
+    // });
+    // result += '}';
+    // console.log('result', result);
     //console.log("order", order)
     const query = `query MyQuery {
-           ${this.cache_db}(distinct_on: unique_id,${result}) {
+           ${this.cache_db}(distinct_on: unique_id) {
             id
             unique_id
             item_id
@@ -51,8 +51,16 @@ export class HasuraService {
           }`;
     try {
       const response = await this.queryDb(query);
-      return response;
-    } catch (error) {
+      const jobs = response.data[this.cache_db]
+      const filteredJobs = this.filterJobs(jobs, filters);
+        
+      // Return the response in the desired format
+      return {
+          data: {
+              ubi_network_cache: filteredJobs
+          }
+      };
+        } catch (error) {
       //this.logger.error("Something Went wrong in creating Admin", error);
       console.log('error', error);
       throw new HttpException(
@@ -61,6 +69,73 @@ export class HasuraService {
       );
     }
   }
+
+
+  
+  filterJobs(jobs, filters) {
+    if (!filters) return jobs;
+    
+    const isIncomeInRange = (incomeRange, targetRange) => {
+      const [targetMin, targetMax] = targetRange.split('-').map(value => parseInt(value.replace(/[^\d]/g, '').trim()));
+      const [incomeMin, incomeMax] = incomeRange.split('-').map(value => parseInt(value.replace(/[^\d]/g, '').trim()));
+
+      return (incomeMin <= targetMax && incomeMax >= targetMin);
+  };// If no filters, return all jobs
+
+    return jobs.filter(job => {
+        let matches = true;
+
+        // Check if tags exist and are an array
+        if (Array.isArray(job.item.tags)) {
+            // Initialize match flags for each filter
+            const socialEligibilityMatch = filters['social-eligibility'] 
+            ? job.item.tags.some(tag => 
+                tag.descriptor.code === 'background-eligibility' &&
+                Array.isArray(tag.list) && 
+                tag.list.some(item => 
+                    item.value.toLowerCase().includes(filters['social-eligibility'].toLowerCase()) ||
+                    item.value.toLowerCase() === "na"
+                )
+            )
+            : true;
+
+            const genderEligibilityMatch = filters['gender-eligibility'] 
+                ? job.item.tags.some(tag => 
+                    tag.descriptor.code === 'background-eligibility' &&
+                    Array.isArray(tag.list) && 
+                    tag.list.some(item => 
+                      item.value.toLowerCase().includes(filters['gender-eligibility'].toLowerCase()) ||
+                      item.value.toLowerCase() === "na" // Match if the value is "NA"
+                  )
+              )
+                : true;
+
+                const annHhIncMatch = filters['ann-hh-inc'] 
+                ? job.item.tags.some(tag => 
+                    tag.descriptor.code === 'background-eligibility' &&
+                    Array.isArray(tag.list) && 
+                    tag.list.some(item => {
+                        const incomeRange = item.value; // The value from the job item
+                        return isIncomeInRange(incomeRange, filters['ann-hh-inc']) ||
+                        item.value.toLowerCase() === "na"; 
+                    })
+                )
+                : true;
+
+            // Combine all matches
+            matches = socialEligibilityMatch && genderEligibilityMatch && annHhIncMatch;
+
+        } else {
+            console.log('Job does not have tags or tags is not an array:', job);
+        }
+
+        return matches; // Return true if job matches all filters
+    });
+
+    
+}
+
+
 
   async searchResponse(data) {
     console.log('searching response from ' + this.response_cache_db);

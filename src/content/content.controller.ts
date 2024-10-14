@@ -145,4 +145,16 @@ export class ContentController {
       data: certificates,
     };
   }
+  @Post('/encrypt')
+  async encrption(@Request() request, @Body() body) {
+    return this.contentService.encryption(body);
+  }
+
+  @Post('/decrypt')
+  async decryption(
+    @Request() request,
+    @Body() body: { encryptedData: string },
+  ) {
+    return this.contentService.decryption(body.encryptedData);
+  }
 }
