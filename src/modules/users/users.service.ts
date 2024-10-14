@@ -4,12 +4,16 @@ import { Repository } from 'typeorm';
 import { User } from '../../entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDocDTO } from './dto/user_docs.dto';
+import { UserDoc } from '@entities/user_docs.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserDoc)
+    private readonly userDocsRepository: Repository<UserDoc>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -58,5 +62,10 @@ export class UserService {
       created_at: new Date(),
     });
     return await this.userRepository.save(user);
+  }
+  // User docs save
+  async createUserDoc(createUserDocDto: CreateUserDocDTO): Promise<UserDoc> {
+    const newUserDoc = this.userDocsRepository.create(createUserDocDto);
+    return await this.userDocsRepository.save(newUserDoc);
   }
 }

@@ -20,7 +20,6 @@ export class AuthController {
   constructor(public authService: AuthService) {}
 
   // users/register on keycloak and postgres both side.
-  @Version('1')
   @Post('/register')
   @UsePipes(new ValidationPipe())
   @ApiBody({ type: RegisterDTO })
@@ -31,7 +30,6 @@ export class AuthController {
     return this.authService.register(body, response);
   }
 
-  @Version('1')
   @Post('/login')
   @UsePipes(ValidationPipe)
   login(@Req() req: Request, @Res() response: Response) {
@@ -43,7 +41,6 @@ export class AuthController {
   //   logout(@Req() req: Request, @Res() response: Response) {
   //     return this.authService.logout(req, response);
   //   }
-  @Version('1')
   @Post('/refresh-token')
   @UsePipes(ValidationPipe)
   refreshToken(@Req() req: Request, @Res() response: Response) {

@@ -18,7 +18,6 @@ export class RegisterDTO {
   @IsNotEmpty({ message: 'Mobile number is required' })
   phone_number: string;
 
-  @IsNotEmpty({ message: 'Email is required' })
   @IsEmail({}, { message: 'Email must be valid' })
   email: string;
 

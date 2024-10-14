@@ -5,7 +5,6 @@ import {
   Delete,
   Query,
   Body,
-  Version,
   Post,
 } from '@nestjs/common';
 import { UserRolesService } from './user_roles.service';
@@ -19,8 +18,7 @@ export class UserRolesController {
   constructor(private readonly userRolesService: UserRolesService) {}
 
   // Create a new user_role
-  @Version('1')
-  @Post('/create')
+  @Post('create')
   @ApiOperation({ summary: 'Create a new user role' })
   @ApiResponse({ status: 201, description: 'User role successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
@@ -30,8 +28,7 @@ export class UserRolesController {
     return this.userRolesService.create(createUserRoleDto);
   }
 
-  @Version('1')
-  @Patch('/update')
+  @Patch('update')
   @ApiQuery({ name: 'user_id', required: true, type: String })
   @ApiQuery({ name: 'role_id', required: true, type: String })
   @ApiOperation({ summary: 'Update a user role' })
@@ -45,8 +42,7 @@ export class UserRolesController {
     return this.userRolesService.update(user_id, role_id, updateUserRoleDto);
   }
 
-  @Version('1')
-  @Get('/get_one')
+  @Get('get_one')
   @ApiQuery({ name: 'user_id', required: true, type: String })
   @ApiQuery({ name: 'role_id', required: true, type: String })
   @ApiOperation({ summary: 'Get a user role by user_id and role_id' })
@@ -59,16 +55,14 @@ export class UserRolesController {
     return this.userRolesService.findOne(user_id, role_id);
   }
 
-  @Version('1')
-  @Get('/get_all')
+  @Get('get_all')
   @ApiOperation({ summary: 'Get all user roles' })
   @ApiResponse({ status: 200, description: 'List of all user roles' })
   async getAll(): Promise<UserRole[]> {
     return this.userRolesService.findAll();
   }
 
-  @Version('1')
-  @Delete('/delete')
+  @Delete('delete')
   @ApiQuery({ name: 'user_id', required: true, type: String })
   @ApiQuery({ name: 'role_id', required: true, type: String })
   @ApiOperation({ summary: 'Delete a user role by user_id and role_id' })

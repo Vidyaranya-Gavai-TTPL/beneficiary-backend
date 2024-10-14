@@ -6,14 +6,14 @@ import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { KeycloakService } from '@services/keycloak/keycloak.service';
 import { UserService } from '@modules/users/users.service';
-import { UserModule } from '@modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '@entities/user.entity';
+import { UserDoc } from '@entities/user_docs.entity';
 
 @Module({
-  imports: [KeycloakModule, TypeOrmModule.forFeature([User])],
+  imports: [KeycloakModule, TypeOrmModule.forFeature([User, UserDoc])],
   controllers: [AuthController],
   providers: [AuthService, ConfigService, KeycloakService, UserService],
-  exports: [AuthService],
+  exports: [AuthService, UserService],
 })
 export class AuthModule {}
