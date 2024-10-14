@@ -8,6 +8,7 @@ import { CreateUserDocDTO } from './dto/user_docs.dto';
 import { UserDoc } from '@entities/user_docs.entity';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserInfo } from '@entities/user_info.entity';
+import { EncryptionService } from 'src/common/helper/encryptionService';
 @Injectable()
 export class UserService {
   constructor(
@@ -17,6 +18,7 @@ export class UserService {
     private readonly userDocsRepository: Repository<UserDoc>,
     @InjectRepository(UserInfo)
     private readonly userInfoRepository: Repository<UserInfo>,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -35,10 +37,10 @@ export class UserService {
     return await this.userRepository.save(existingUser);
   }
 
-  async findOne(user_id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { user_id } });
+  async findOne(sso_id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { sso_id } });
     if (!user) {
-      throw new NotFoundException(`User with ID '${user_id}' not found`);
+      throw new NotFoundException(`User with ID '${sso_id}' not found`);
     }
     return user;
   }
@@ -68,6 +70,8 @@ export class UserService {
   }
   // User docs save
   async createUserDoc(createUserDocDto: CreateUserDocDTO): Promise<UserDoc> {
+    const encrypted = this.encryptionService.encrypt(createUserDocDto.doc_data);
+    createUserDocDto.doc_data = encrypted;
     const newUserDoc = this.userDocsRepository.create(createUserDocDto);
     return await this.userDocsRepository.save(newUserDoc);
   }
@@ -75,6 +79,8 @@ export class UserService {
   async createUserInfo(
     createUserInfoDto: CreateUserInfoDto,
   ): Promise<UserInfo> {
+    const encrypted = this.encryptionService.encrypt(createUserInfoDto.aadhar);
+    createUserInfoDto.aadhar = encrypted;
     const userInfo = this.userInfoRepository.create(createUserInfoDto);
     return await this.userInfoRepository.save(userInfo);
   }

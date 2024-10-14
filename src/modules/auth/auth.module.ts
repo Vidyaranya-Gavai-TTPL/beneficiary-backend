@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '@entities/user.entity';
 import { UserDoc } from '@entities/user_docs.entity';
 import { UserInfo } from '@entities/user_info.entity';
+import { EncryptionService } from 'src/common/helper/encryptionService';
 
 @Module({
   imports: [
@@ -17,7 +18,13 @@ import { UserInfo } from '@entities/user_info.entity';
     TypeOrmModule.forFeature([User, UserDoc, UserInfo]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, ConfigService, KeycloakService, UserService],
-  exports: [AuthService, UserService],
+  providers: [
+    AuthService,
+    ConfigService,
+    KeycloakService,
+    UserService,
+    EncryptionService,
+  ],
+  exports: [AuthService, UserService, EncryptionService],
 })
 export class AuthModule {}
