@@ -6,7 +6,6 @@ import {
   Delete,
   Body,
   Param,
-  Version,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { User } from '../../entity/user.entity';
@@ -14,6 +13,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDocDTO } from './dto/user_docs.dto';
+import { CreateUserInfoDto } from './dto/create-user-info.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -61,5 +61,18 @@ export class UserController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async createUserDoc(@Body() createUserDocDto: CreateUserDocDTO) {
     return this.userService.createUserDoc(createUserDocDto);
+  }
+
+  @Post('/user_info')
+  async createUSerInfo(@Body() createUserInfoDto: CreateUserInfoDto) {
+    return await this.userService.createUserInfo(createUserInfoDto);
+  }
+
+  @Put('/user_info/:user_id')
+  async updateUserInfo(
+    @Param('user_id') user_id: string,
+    @Body() updateUserInfoDto: CreateUserInfoDto,
+  ) {
+    return await this.userService.updateUserInfo(user_id, updateUserInfoDto);
   }
 }
