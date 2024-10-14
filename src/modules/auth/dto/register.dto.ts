@@ -18,9 +18,6 @@ export class RegisterDTO {
   @IsNotEmpty({ message: 'Mobile number is required' })
   phone_number: string;
 
-  @IsEmail({}, { message: 'Email must be valid' })
-  email: string;
-
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).*$/, {
