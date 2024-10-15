@@ -1,10 +1,4 @@
-import {
-  IsUUID,
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsIn,
-} from 'class-validator';
+import { IsUUID, IsString, IsNotEmpty, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserApplicationDto {
@@ -51,6 +45,12 @@ export class CreateUserApplicationDto {
   @IsString()
   @IsNotEmpty()
   external_application_id: string;
+
+  @ApiProperty({
+    description: 'Application Name',
+    type: String,
+  })
+  application_name: string;
 
   @ApiProperty({
     description: 'Status of the application',
