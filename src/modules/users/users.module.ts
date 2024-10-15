@@ -7,9 +7,18 @@ import { UserDoc } from '@entities/user_docs.entity';
 import { UserInfo } from '@entities/user_info.entity';
 import { EncryptionService } from 'src/common/helper/encryptionService';
 import { Consent } from '@entities/consent.entity';
+import { UserApplication } from '@entities/user_applications.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserDoc, UserInfo, Consent])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      UserDoc,
+      UserInfo,
+      Consent,
+      UserApplication,
+    ]),
+  ],
   controllers: [UserController],
   providers: [UserService, EncryptionService],
 })

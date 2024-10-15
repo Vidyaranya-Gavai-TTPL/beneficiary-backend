@@ -12,6 +12,8 @@ import { EncryptionService } from 'src/common/helper/encryptionService';
 import { UserWithInfo } from './interfaces/user-with-info.interface';
 import { Consent } from '@entities/consent.entity';
 import { CreateConsentDto } from './dto/create-consent.dto';
+import { UserApplication } from '@entities/user_applications.entity';
+import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -24,6 +26,8 @@ export class UserService {
     private readonly encryptionService: EncryptionService,
     @InjectRepository(Consent)
     private readonly consentRepository: Repository<Consent>,
+    @InjectRepository(UserApplication)
+    private readonly userApplicationRepository: Repository<UserApplication>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -143,5 +147,34 @@ export class UserService {
   ): Promise<Consent> {
     const consent = this.consentRepository.create(createConsentDto);
     return await this.consentRepository.save(consent);
+  }
+  async createUserApplication(
+    createUserApplicationDto: CreateUserApplicationDto,
+  ): Promise<UserApplication> {
+    const userApplication = this.userApplicationRepository.create(
+      createUserApplicationDto,
+    );
+    return this.userApplicationRepository.save(userApplication);
+  }
+
+  async findOneUserApplication(
+    internal_application_id: string,
+  ): Promise<UserApplication> {
+    const userApplication = await this.userApplicationRepository.findOne({
+      where: { internal_application_id },
+    });
+    if (!userApplication) {
+      throw new NotFoundException(
+        `Application with ID '${internal_application_id}' not found`,
+      );
+    }
+    return userApplication;
+  }
+  async findAllApplicationsByUserId(
+    user_id: string,
+  ): Promise<UserApplication[]> {
+    return await this.userApplicationRepository.find({
+      where: { user_id },
+    });
   }
 }
