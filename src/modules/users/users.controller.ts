@@ -17,6 +17,8 @@ import { CreateUserDocDTO } from './dto/user_docs.dto';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserWithInfo } from './interfaces/user-with-info.interface';
 import { CreateConsentDto } from './dto/create-consent.dto';
+import { UserApplication } from '@entities/user_applications.entity';
+import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -84,5 +86,45 @@ export class UserController {
   @Post('/consent')
   async createUserConsent(@Body() createConsentDto: CreateConsentDto) {
     return this.userService.createUserConsent(createConsentDto);
+  }
+
+  @Post('/user_application')
+  @ApiOperation({ summary: 'Create a new user application' })
+  @ApiResponse({
+    status: 201,
+    description: 'User application created successfully',
+    type: UserApplication,
+  })
+  async createUserApplication(
+    @Body() createUserApplicationDto: CreateUserApplicationDto,
+  ): Promise<UserApplication> {
+    return this.userService.createUserApplication(createUserApplicationDto);
+  }
+
+  @Get('/user_application/:internal_application_id')
+  @ApiOperation({ summary: 'Get user application by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'User application data',
+    type: UserApplication,
+  })
+  @ApiResponse({ status: 404, description: 'User application not found' })
+  async findOneUserApplication(
+    @Param('internal_application_id') internal_application_id: string,
+  ): Promise<UserApplication> {
+    return this.userService.findOneUserApplication(internal_application_id);
+  }
+
+  @Get('/user_applications_list/:userId')
+  @ApiOperation({ summary: 'Get all applications for a specific user' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of user applications',
+    type: [UserApplication],
+  })
+  async findAllApplicationsByUserId(
+    @Param('userId') userId: string,
+  ): Promise<UserApplication[]> {
+    return this.userService.findAllApplicationsByUserId(userId);
   }
 }
