@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { User } from '../../entity/user.entity';
@@ -14,6 +15,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDocDTO } from './dto/user_docs.dto';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
+import { UserWithInfo } from './interfaces/user-with-info.interface';
+import { CreateConsentDto } from './dto/create-consent.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -43,10 +46,12 @@ export class UserController {
   @ApiOperation({ summary: 'Get a user by userId' })
   @ApiResponse({ status: 200, description: 'User data' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findOne(@Param('userId') userId: string): Promise<User> {
-    return this.userService.findOne(userId);
+  async findOne(
+    @Param('userId') userId: string,
+    @Query('decryptData') decryptData?: boolean,
+  ): Promise<UserWithInfo> {
+    return this.userService.findOne(userId, decryptData); // Returns UserWithInfo
   }
-
   @Delete('/delete/:userId')
   @ApiOperation({ summary: 'Delete a user by userId' })
   @ApiResponse({ status: 200, description: 'User successfully deleted' })
@@ -74,5 +79,10 @@ export class UserController {
     @Body() updateUserInfoDto: CreateUserInfoDto,
   ) {
     return await this.userService.updateUserInfo(user_id, updateUserInfoDto);
+  }
+
+  @Post('/consent')
+  async createUserConsent(@Body() createConsentDto: CreateConsentDto) {
+    return this.userService.createUserConsent(createConsentDto);
   }
 }
