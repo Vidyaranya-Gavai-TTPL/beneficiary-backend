@@ -74,6 +74,8 @@ export class HasuraService {
   
   filterJobs(jobs, filters) {
     if (!filters) return jobs;
+
+    console.log("filters",filters)
     
     const isIncomeInRange = (incomeRange, targetRange) => {
       const [targetMin, targetMax] = targetRange.split('-').map(value => parseInt(value.replace(/[^\d]/g, '').trim()));
@@ -136,6 +138,8 @@ export class HasuraService {
 
             // Combine all matches
             matches = socialEligibilityMatch && genderEligibilityMatch && annHhIncMatch;
+
+            console.log("matches",matches)
 
         } else {
             console.log('Job does not have tags or tags is not an array:', job);
