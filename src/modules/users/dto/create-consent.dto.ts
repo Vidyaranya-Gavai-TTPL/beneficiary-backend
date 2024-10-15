@@ -40,12 +40,12 @@ export class CreateConsentDto {
   @IsBoolean() // Validates that accepted is a boolean
   accepted: boolean;
 
-  @ApiProperty({
-    description: 'Date and time when the consent was given',
-    type: String,
-    format: 'date-time',
-    required: false, // Optional since it defaults to NOW() in the database
-  })
-  @IsDate() // Validates that consent_date is a date
-  consent_date?: Date; // Optional
+  // @ApiProperty({
+  //   description: 'Date and time when the consent was given',
+  //   type: String,
+  //   format: 'date-time',
+  //   required: false, // Optional since it defaults to NOW() in the database
+  // })
+  // @IsDate() // Validates that consent_date is a date
+  // consent_date?: Date; // Optional
 }

@@ -29,6 +29,9 @@ export class UserApplication {
   @Column({ type: 'varchar', length: 100 })
   external_application_id: string;
 
+  @Column({ type: 'text', nullable: true })
+  application_name: string;
+
   @Column({ type: 'varchar', length: 20 })
   status: string;
 
