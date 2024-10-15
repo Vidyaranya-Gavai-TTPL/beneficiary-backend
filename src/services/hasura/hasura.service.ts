@@ -52,6 +52,8 @@ export class HasuraService {
     try {
       const response = await this.queryDb(query);
       const jobs = response.data[this.cache_db]
+
+      console.log("jobs",jobs)
       const filteredJobs = this.filterJobs(jobs, filters);
         
       // Return the response in the desired format
@@ -137,6 +139,8 @@ export class HasuraService {
                 // : true;
 
             // Combine all matches
+
+            console.log("all matches",socialEligibilityMatch,genderEligibilityMatch,annHhIncMatch)
             matches = socialEligibilityMatch && genderEligibilityMatch && annHhIncMatch;
 
             console.log("matches",matches)
