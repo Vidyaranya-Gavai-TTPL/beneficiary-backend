@@ -122,6 +122,18 @@ export class HasuraService {
                 )
                 : true;
 
+                // const annHhIncMatch = filters['ann-hh-inc'] 
+                // ? job.item.tags.some(tag => 
+                //     tag.descriptor.code === 'background-eligibility' &&
+                //     Array.isArray(tag.list) && 
+                //     tag.list.some(item => {
+                //         const incomeRange = item.value; // The value from the job item
+                //         return isIncomeInRange(incomeRange, filters['ann-hh-inc']) ||
+                //         item.value.toLowerCase() === "na"; 
+                //     })
+                // )
+                // : true;
+
             // Combine all matches
             matches = socialEligibilityMatch && genderEligibilityMatch && annHhIncMatch;
 
@@ -205,6 +217,7 @@ export class HasuraService {
 
   async queryDb(query: string, variables?: Record<string, any>): Promise<any> {
     try {
+      console.log("querydbDetails",query,variables,this.adminSecretKey)
       const response = await axios.post(
         this.url,
         {
