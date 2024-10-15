@@ -9,6 +9,9 @@ import { UserDoc } from '@entities/user_docs.entity';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserInfo } from '@entities/user_info.entity';
 import { EncryptionService } from 'src/common/helper/encryptionService';
+import { UserWithInfo } from './interfaces/user-with-info.interface';
+import { Consent } from '@entities/consent.entity';
+import { CreateConsentDto } from './dto/create-consent.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -19,6 +22,8 @@ export class UserService {
     @InjectRepository(UserInfo)
     private readonly userInfoRepository: Repository<UserInfo>,
     private readonly encryptionService: EncryptionService,
+    @InjectRepository(Consent)
+    private readonly consentRepository: Repository<Consent>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -37,16 +42,43 @@ export class UserService {
     return await this.userRepository.save(existingUser);
   }
 
-  async findOne(sso_id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { sso_id } });
+  async findOne(sso_id: string, decryptData?: boolean): Promise<UserWithInfo> {
+    let user = await this.userRepository.findOne({ where: { sso_id } });
     if (!user) {
       throw new NotFoundException(`User with ID '${sso_id}' not found`);
     }
-    return user;
+    const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
+    const final: UserWithInfo = {
+      user,
+      userInfo: userInfo,
+    };
+    return final;
+  }
+
+  async findOneUserInfo(
+    user_id: string,
+    decryptData: boolean,
+  ): Promise<UserInfo> {
+    let userInfo = await this.userInfoRepository.findOne({
+      where: { user_id },
+    });
+    if (decryptData) {
+      const decrypted = this.encryptionService.decrypt(userInfo.aadhar);
+      userInfo.aadhar = decrypted;
+    }
+
+    if (!userInfo) {
+      throw new NotFoundException(`User Info with ID '${user_id}' not found`);
+    }
+
+    return userInfo;
   }
 
   async remove(user_id: string): Promise<void> {
-    const user = await this.findOne(user_id);
+    const userWithInfo = await this.findOne(user_id);
+
+    const user = userWithInfo.user;
+
     await this.userRepository.remove(user);
   }
   // Method to check if mobile number exists
@@ -70,9 +102,23 @@ export class UserService {
   }
   // User docs save
   async createUserDoc(createUserDocDto: CreateUserDocDTO): Promise<UserDoc> {
-    const encrypted = this.encryptionService.encrypt(createUserDocDto.doc_data);
-    createUserDocDto.doc_data = encrypted;
-    const newUserDoc = this.userDocsRepository.create(createUserDocDto);
+    if (
+      createUserDocDto.doc_data &&
+      typeof createUserDocDto.doc_data !== 'string'
+    ) {
+      const jsonDataString = JSON.stringify(createUserDocDto.doc_data);
+
+      // Encrypt the JSON string
+      createUserDocDto.doc_data =
+        this.encryptionService.encrypt(jsonDataString);
+    }
+
+    // Ensure doc_data is always a string when calling create
+    const newUserDoc = this.userDocsRepository.create({
+      ...createUserDocDto,
+      doc_data: createUserDocDto.doc_data as string,
+    });
+
     return await this.userDocsRepository.save(newUserDoc);
   }
   // User info
@@ -89,8 +135,17 @@ export class UserService {
     user_id: string,
     updateUserInfoDto: CreateUserInfoDto,
   ): Promise<UserInfo> {
-    const userInfo = await this.findOne(user_id); // Check if the user info record exists
-    Object.assign(userInfo, updateUserInfoDto); // Update the record with new values
-    return await this.userInfoRepository.save(userInfo); // Save the updated record
+    const userInfo = await this.findOneUserInfo(user_id, true); // Fetch UserInfo directly
+
+    Object.assign(userInfo, updateUserInfoDto);
+
+    return await this.userInfoRepository.save(userInfo);
+  }
+  // Create a new consent record
+  async createUserConsent(
+    createConsentDto: CreateConsentDto,
+  ): Promise<Consent> {
+    const consent = this.consentRepository.create(createConsentDto);
+    return await this.consentRepository.save(consent);
   }
 }

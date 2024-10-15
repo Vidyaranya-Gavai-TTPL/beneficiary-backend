@@ -17,8 +17,8 @@ export class CreateUserDocDTO {
   user_id: string;
 
   @ApiProperty({
-    description: 'The type of the document (e.g. ID, Certificate)',
-    example: 'Income Certificate',
+    description: 'The type of the document (e.g.Marksheet)',
+    example: 'Marksheet',
     maxLength: 50,
   })
   @IsString()
@@ -27,8 +27,8 @@ export class CreateUserDocDTO {
   doc_type: string;
 
   @ApiProperty({
-    description: 'The subtype of the document (e.g. Government-issued)',
-    example: 'Government-issued Income Certificate',
+    description: 'The subtype of the document',
+    example: '10th  marksheet',
     maxLength: 255,
   })
   @IsString()
@@ -68,15 +68,15 @@ export class CreateUserDocDTO {
   doc_path?: string;
 
   @ApiProperty({
-    description: 'Additional document data (optional)',
-    example: 'Document data as base64 string',
+    description: 'Additional document data',
+    example: 'Document data will be stored as encrypted',
     required: false,
   })
   @IsOptional()
-  doc_data?: string;
+  doc_data?: Record<string, any> | string;
 
   @ApiProperty({
-    description: 'The datatype of the document (e.g. PDF, JPG)',
+    description: 'The datatype of the document (e.g. PDF, JPG,JSON)',
     example: 'PDF',
     maxLength: 100,
   })
