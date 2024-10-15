@@ -8,6 +8,7 @@ import { UserInfo } from '@entities/user_info.entity';
 import { EncryptionService } from 'src/common/helper/encryptionService';
 import { Consent } from '@entities/consent.entity';
 import { UserApplication } from '@entities/user_applications.entity';
+import { KeycloakService } from '@services/keycloak/keycloak.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { UserApplication } from '@entities/user_applications.entity';
     ]),
   ],
   controllers: [UserController],
-  providers: [UserService, EncryptionService],
+  providers: [UserService, EncryptionService, KeycloakService],
 })
 export class UserModule {}

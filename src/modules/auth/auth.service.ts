@@ -10,7 +10,6 @@ const axios = require('axios');
 const jwt = require('jwt-decode');
 @Injectable()
 export class AuthService {
-  public smsKey = this.configService.get<string>('SMS_KEY');
   public keycloak_admin_cli_client_secret = this.configService.get<string>(
     'KEYCLOAK_ADMIN_CLI_CLIENT_SECRET',
   );
