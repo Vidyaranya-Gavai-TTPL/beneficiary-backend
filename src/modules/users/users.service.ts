@@ -62,13 +62,9 @@ export class UserService {
     let userInfo = await this.userInfoRepository.findOne({
       where: { user_id },
     });
-    if (decryptData) {
-      const decrypted = this.encryptionService.decrypt(userInfo.aadhar);
+    if (userInfo && decryptData) {
+      const decrypted = this.encryptionService.decrypt(userInfo?.aadhar);
       userInfo.aadhar = decrypted;
-    }
-
-    if (!userInfo) {
-      throw new NotFoundException(`User Info with ID '${user_id}' not found`);
     }
 
     return userInfo;

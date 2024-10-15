@@ -45,26 +45,6 @@ export class AuthService {
     }
   }
 
-  public async refreshToken(req: any, response: any) {
-    const token = await this.keycloakService.getUserKeycloakRefreshToken(
-      req.body,
-    );
-    if (token) {
-      //   await this.updateLastLogin(token);
-      return response.status(200).send({
-        success: true,
-        message: 'LOGGEDIN_SUCCESSFULLY',
-        data: token,
-      });
-    } else {
-      return response.status(401).send({
-        success: false,
-        message: 'INVALID_USERNAME_PASSWORD_MESSAGE',
-        data: null,
-      });
-    }
-  }
-
   public async register(body, response) {
     // Step 1: Check if the mobile number already exists in the 'users' table using TypeORM
     let isMobileExist = await this.userService.findByMobile(body?.phone_number);
