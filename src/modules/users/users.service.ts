@@ -209,7 +209,14 @@ export class UserService {
     });
   }
   public async registerUserWithUsername(body) {
-    let username = body.samarga_id;
+    const lastTwoDigits = body?.aadhar?.slice(-2);
+
+    // Concatenate first name, last name, and last 2 digits of Aadhar
+    const username =
+      body?.first_name?.toLowerCase() +
+      body?.last_name?.toLowerCase() +
+      lastTwoDigits;
+
     let data_to_create_user = {
       enabled: 'true',
       firstName: body?.first_name,

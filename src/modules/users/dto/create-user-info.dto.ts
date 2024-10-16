@@ -37,7 +37,7 @@ export class CreateUserInfoDto {
   current_class?: number;
 
   @IsOptional()
-  previous_year_marks?: number;
+  previous_year_marks?: string;
 
   @IsOptional()
   @IsString()
