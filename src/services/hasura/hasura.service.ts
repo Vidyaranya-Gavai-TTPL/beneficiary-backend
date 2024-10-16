@@ -73,63 +73,73 @@ export class HasuraService {
   }
 
 
-  
   filterJobs(jobs, filters) {
     if (!filters) return jobs; // If no filters, return all jobs
 
     // Function to check if the income falls within a specified range
-    const isIncomeInRange = (incomeRange, targetRange) => {
+    const isIncomeInRange = (incomeValue, targetRange) => {
+        // Convert the targetRange to min and max
         const [targetMin, targetMax] = targetRange.split('-').map(value => parseInt(value.replace(/[^\d]/g, '').trim()));
-        const [incomeMin, incomeMax] = incomeRange.split('-').map(value => parseInt(value.replace(/[^\d]/g, '').trim()));
 
-        return (incomeMin <= targetMax && incomeMax >= targetMin);
+        // Handle cases where incomeValue is a single number or a range
+        if (incomeValue.includes('-')) {
+            // It's a range, split and compare as usual
+            const [incomeMin, incomeMax] = incomeValue.split('-').map(value => parseInt(value.replace(/[^\d]/g, '').trim()));
+            return (incomeMin <= targetMax && incomeMax >= targetMin);
+        } else {
+            // It's a single number, directly compare
+            const incomeNumber = parseFloat(incomeValue.replace(/[^\d.]/g, '').trim());
+            return incomeNumber >= targetMin && incomeNumber <= targetMax;
+        }
     };
 
     return jobs.filter(job => {
         let matches = true;
 
         // Check if tags exist and are an array
-        if (Array.isArray(job.item.tags)) {
+        if (Array.isArray(job.item?.tags)) {
             // Initialize match flags for each filter
-            const socialEligibilityMatch = filters['social-eligibility'] 
-                ? job.item.tags.some(tag => 
-                    tag.descriptor.code === 'background-eligibility' &&
-                    Array.isArray(tag.list) && 
-                    tag.list.some(item => 
-                        item.value.toLowerCase().includes(filters['social-eligibility'].toLowerCase()) || // Match partial values
-                        item.value.toLowerCase() === "all" // Match if the value is "NA"
+            const backgroundEligibility = job.item.tags.find(tag => tag.descriptor?.code === 'background-eligibility');
+            
+            // Check if the background eligibility tag exists and has a list
+            if (backgroundEligibility && Array.isArray(backgroundEligibility.list)) {
+                
+                // Match 'social-eligibility' filter
+                const socialEligibilityMatch = filters['social-eligibility']
+                    ? backgroundEligibility.list.some(item =>
+                        item.descriptor?.code === 'social-eligibility' &&
+                        (item.value?.toLowerCase() === filters['social-eligibility'].toLowerCase() || // Exact match
+                        item.value?.toLowerCase() === "all") // Match if the value is "all"
                     )
-                )
-                : true;
+                    : true;
 
-            const genderEligibilityMatch = filters['gender-eligibility'] 
-                ? job.item.tags.some(tag => 
-                    tag.descriptor.code === 'background-eligibility' &&
-                    Array.isArray(tag.list) && 
-                    tag.list.some(item => 
-                        item.value.toLowerCase().includes(filters['gender-eligibility'].toLowerCase()) ||
-                        item.value.toLowerCase() === "all" // Match if the value is "NA"
+                // Match 'gender-eligibility' filter
+                const genderEligibilityMatch = filters['gender-eligibility']
+                    ? backgroundEligibility.list.some(item =>
+                        item.descriptor?.code === 'gender-eligibility' &&
+                        (item.value?.toLowerCase() === filters['gender-eligibility'].toLowerCase() || // Exact match
+                        item.value?.toLowerCase() === "all") // Match if the value is "all"
                     )
-                )
-                : true;
+                    : true;
 
-            const annHhIncMatch = filters['ann-hh-inc'] 
-                ? job.item.tags.some(tag => 
-                    tag.descriptor.code === 'background-eligibility' &&
-                    Array.isArray(tag.list) && 
-                    tag.list.some(item => {
-                        const incomeRange = item.value; // The value from the job item
-                        return isIncomeInRange(incomeRange, filters['ann-hh-inc']) || // Check if the income falls within the range
-                               item.value.toLowerCase() === "all"; // Match if the value is "NA"
-                    })
-                )
-                : true;
+                // Match 'ann-hh-inc' filter
+                const annHhIncMatch = filters['ann-hh-inc']
+                    ? backgroundEligibility.list.some(item =>
+                        item.descriptor?.code === 'ann-hh-inc' &&
+                        (isIncomeInRange(item.value, filters['ann-hh-inc']) || // Check if income is in range
+                        item.value?.toLowerCase() === "all") // Match if the value is "all"
+                    )
+                    : true;
 
-            // Combine all matches
-            matches = socialEligibilityMatch && genderEligibilityMatch && annHhIncMatch;
-
+                // Combine all matches
+                matches = socialEligibilityMatch && genderEligibilityMatch && annHhIncMatch;
+            } else {
+                console.log('Background eligibility tag not found or list is not an array:', job);
+                matches = false; // No background eligibility tag or improper format
+            }
         } else {
             console.log('Job does not have tags or tags is not an array:', job);
+            matches = false; // No tags or improper format
         }
 
         return matches; // Return true if job matches all filters
@@ -138,8 +148,8 @@ export class HasuraService {
 
 
 
-
   async searchResponse(data) {
+    console.log('searching response from ' + this.response_cache_db);
 
     let result = 'where: {';
     Object.entries(data).forEach(([key, value]) => {
@@ -206,6 +216,7 @@ export class HasuraService {
 
   async queryDb(query: string, variables?: Record<string, any>): Promise<any> {
     try {
+      console.log("querydbDetails",query,variables,this.adminSecretKey)
       const response = await axios.post(
         this.url,
         {
@@ -425,6 +436,8 @@ export class HasuraService {
         }
       }
     `;
+
+    console.log(query);
 
     try {
       const response = await this.queryDb(query, data);
