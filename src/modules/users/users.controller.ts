@@ -115,7 +115,7 @@ export class UserController {
     return this.userService.findOneUserApplication(internal_application_id);
   }
 
-  @Get('/user_applications_list/:userId')
+  @Post('/user_applications_list')
   @ApiOperation({ summary: 'Get all applications for a specific user' })
   @ApiResponse({
     status: 200,
@@ -123,8 +123,8 @@ export class UserController {
     type: [UserApplication],
   })
   async findAllApplicationsByUserId(
-    @Param('userId') userId: string,
+    @Body() requestBody: { filters: any, search: string },
   ): Promise<UserApplication[]> {
-    return this.userService.findAllApplicationsByUserId(userId);
+    return this.userService.findAllApplicationsByUserId(requestBody);
   }
 }
