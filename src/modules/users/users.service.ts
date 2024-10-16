@@ -14,6 +14,7 @@ import { Consent } from '@entities/consent.entity';
 import { CreateConsentDto } from './dto/create-consent.dto';
 import { UserApplication } from '@entities/user_applications.entity';
 import { CreateUserApplicationDto } from './dto/create-user-application-dto';
+import { KeycloakService } from '@services/keycloak/keycloak.service';
 @Injectable()
 export class UserService {
   constructor(
@@ -28,6 +29,7 @@ export class UserService {
     private readonly consentRepository: Repository<Consent>,
     @InjectRepository(UserApplication)
     private readonly userApplicationRepository: Repository<UserApplication>,
+    private readonly keycloakService: KeycloakService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -88,12 +90,18 @@ export class UserService {
     });
   }
 
-  async createKeycloakData(body): Promise<User> {
+  async findByUsername(username: string): Promise<User | undefined> {
+    return await this.userRepository.findOne({
+      where: { phone_number: username },
+    });
+  }
+
+  async createKeycloakData(body: any): Promise<User> {
     const user = this.userRepository.create({
       first_name: body.first_name,
       last_name: body.last_name,
-      email: body.email,
-      phone_number: body.mobile,
+      email: body.email || '',
+      phone_number: body.mobile || '',
       sso_provider: 'keycloak',
       sso_id: body.keycloak_id,
       created_at: new Date(),
@@ -124,11 +132,34 @@ export class UserService {
   // User info
   async createUserInfo(
     createUserInfoDto: CreateUserInfoDto,
-  ): Promise<UserInfo> {
-    const encrypted = this.encryptionService.encrypt(createUserInfoDto.aadhar);
-    createUserInfoDto.aadhar = encrypted;
-    const userInfo = this.userInfoRepository.create(createUserInfoDto);
-    return await this.userInfoRepository.save(userInfo);
+  ): Promise<UserInfo | null> {
+    try {
+      // Ensure you await the result of registerUserWithUsername
+      const userData = await this.registerUserWithUsername(createUserInfoDto);
+
+      // Check if userData and userData.user exist
+      if (userData && userData.user && userData.user.user_id) {
+        // Assign the user_id from userData to createUserInfoDto
+        createUserInfoDto.user_id = userData.user.user_id;
+
+        // Encrypt the Aadhar before saving
+        const encrypted = this.encryptionService.encrypt(
+          createUserInfoDto.aadhar,
+        );
+        createUserInfoDto.aadhar = encrypted;
+
+        // Create and save the new UserInfo record
+        const userInfo = this.userInfoRepository.create(createUserInfoDto);
+        return await this.userInfoRepository.save(userInfo);
+      } else {
+        // Handle the case where userData or userData.user is null
+        console.error('User registration failed or returned invalid data.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error while creating user info:', error);
+      throw new Error('Could not create user info');
+    }
   }
 
   async updateUserInfo(
@@ -176,5 +207,78 @@ export class UserService {
     return await this.userApplicationRepository.find({
       where: { user_id },
     });
+  }
+  public async registerUserWithUsername(body) {
+    let username = body.samarga_id;
+    let data_to_create_user = {
+      enabled: 'true',
+      firstName: body?.first_name,
+      lastName: body?.last_name,
+      username: username,
+      credentials: [
+        {
+          type: 'password',
+          value: body?.password || 'Password@123',
+          temporary: false,
+        },
+      ],
+    };
+
+    // Step 3: Get Keycloak admin token
+    const token = await this.keycloakService.getAdminKeycloakToken();
+
+    if (token?.access_token) {
+      try {
+        // Step 4: Register user in Keycloak
+        const registerUserRes = await this.keycloakService.registerUser(
+          data_to_create_user,
+          token.access_token,
+        );
+
+        if (registerUserRes.error) {
+          if (
+            registerUserRes.error.message ==
+            'Request failed with status code 409'
+          ) {
+            console.log('User already exists!');
+          } else {
+            console.log(registerUserRes.error.message);
+          }
+        } else if (registerUserRes.headers.location) {
+          const split = registerUserRes.headers.location.split('/');
+          const keycloak_id = split[split.length - 1];
+          body.keycloak_id = keycloak_id;
+          body.username = data_to_create_user.username;
+
+          // Step 5: Try to create user in PostgreSQL
+          const result = await this.createKeycloakData(body);
+
+          // If successful, return success response
+          const userResponse = {
+            user: result,
+            keycloak_id: keycloak_id,
+            username: data_to_create_user.username,
+          };
+          return userResponse;
+        } else {
+          console.log('Unable to create user in Keycloak');
+        }
+      } catch (error) {
+        console.error('Error during user registration:', error);
+
+        // Step 6: Rollback - delete user from Keycloak if PostgreSQL insertion fails
+        if (body?.keycloak_id) {
+          await this.keycloakService.deleteUser(body.keycloak_id);
+          console.log(
+            'Keycloak user deleted due to failure in PostgreSQL creation',
+          );
+        }
+        console.log(
+          'Error during user registration. Keycloak user has been rolled back.',
+        );
+      }
+    } else {
+      console.log('Unable to get Keycloak token');
+    }
   }
 }
