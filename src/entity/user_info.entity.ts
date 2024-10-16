@@ -32,8 +32,8 @@ export class UserInfo {
   @Column({ type: 'int', nullable: true })
   current_class: number;
 
-  @Column({ type: 'numeric', precision: 5, scale: 2, nullable: true })
-  previous_year_marks: number;
+  @Column({ type: 'varchar', nullable: true })
+  previous_year_marks: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   student_type: string;
