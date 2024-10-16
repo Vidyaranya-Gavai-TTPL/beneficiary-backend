@@ -209,12 +209,20 @@ export class UserService {
     });
   }
   public async registerUserWithUsername(body) {
+    // Replace spaces with underscores in first name and last name
+    const firstPartOfFirstName = body?.first_name
+      ?.split(' ')[0]
+      ?.replace(/\s+/g, '_');
+    const lastNameWithUnderscore = body?.last_name?.replace(/\s+/g, '_');
+
+    // Extract the last 2 digits of Aadhar
     const lastTwoDigits = body?.aadhar?.slice(-2);
 
-    // Concatenate first name, last name, and last 2 digits of Aadhar
+    // Concatenate the processed first name, last name, and last 2 digits of Aadhar
     const username =
-      body?.first_name?.toLowerCase() +
-      body?.last_name?.toLowerCase() +
+      firstPartOfFirstName?.toLowerCase() +
+      '_' +
+      lastNameWithUnderscore?.toLowerCase() +
       lastTwoDigits;
 
     let data_to_create_user = {
