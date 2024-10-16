@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, IsNull, Not, Repository } from 'typeorm';
 import { User } from '../../entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -201,13 +201,43 @@ export class UserService {
     }
     return userApplication;
   }
+
   async findAllApplicationsByUserId(
-    user_id: string,
+    requestBody: { filters?: any; search?: string },
   ): Promise<UserApplication[]> {
+    let whereClause = {};
+    const filterKeys = this.userApplicationRepository.metadata.columns.map(
+      (column) => column.propertyName,
+    );
+    const { filters = {}, search } = requestBody; // Default filters to an empty object
+  
+    // Handle filters if provided
+    if (filters && Object.keys(filters).length > 0) {
+      for (const [key, value] of Object.entries(filters)) {
+        // Check for valid filter keys and ignore null or undefined values
+        if (filterKeys.includes(key) && value !== null && value !== undefined) {
+          whereClause[key] = value;
+        }
+      }
+    }
+  
+    // Handle search for `application_name` using ILIKE
+    if (search && search.trim().length > 0) {
+      whereClause['application_name'] = ILike(`%${search}%`);
+      // Add a condition to filter out records with null application_name
+      
+       // Exclude null values
+    }
+  
+    console.log("whereClause", whereClause);
+    
+    // Find and return the applications based on the where clause
     return await this.userApplicationRepository.find({
-      where: { user_id },
+      where: whereClause,
     });
   }
+
+
   public async registerUserWithUsername(body) {
     // Replace spaces with underscores in first name and last name
     const firstPartOfFirstName = body?.first_name
