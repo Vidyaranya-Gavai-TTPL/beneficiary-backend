@@ -166,11 +166,11 @@ export class UserService {
     user_id: string,
     updateUserInfoDto: CreateUserInfoDto,
   ): Promise<UserInfo> {
-    const userInfo = await this.findOneUserInfo(user_id, true); // Fetch UserInfo directly
-
+    const userInfo = await this.userInfoRepository.findOne({
+      where: { user_id },
+    });
     Object.assign(userInfo, updateUserInfoDto);
-
-    return await this.userInfoRepository.save(userInfo);
+    return this.userInfoRepository.save(userInfo);
   }
   // Create a new consent record
   async createUserConsent(
