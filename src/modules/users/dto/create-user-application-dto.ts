@@ -1,4 +1,10 @@
-import { IsUUID, IsString, IsNotEmpty, IsIn } from 'class-validator';
+import {
+  IsUUID,
+  IsString,
+  IsNotEmpty,
+  IsIn,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserApplicationDto {
@@ -49,17 +55,28 @@ export class CreateUserApplicationDto {
   @ApiProperty({
     description: 'Application Name',
     type: String,
+    required: false,
   })
-  application_name: string;
+  @IsOptional() // Optional
+  @IsString() // Optional, if you want to validate it as a string
+  application_name?: string;
 
   @ApiProperty({
     description: 'Status of the application',
     type: String,
     maxLength: 20,
-    example: 'pending',
+    example: 'submitted',
   })
   @IsString()
-  @IsIn(['pending', 'approved', 'rejected'])
+  @IsIn(['submitted', 'approved', 'rejected'])
   @IsNotEmpty()
   status: string;
+
+  @ApiProperty({
+    example: '{}',
+    description: 'Application data',
+    required: false,
+  })
+  @IsOptional() // Optional
+  application_data?: Record<string, any>; // Optional
 }

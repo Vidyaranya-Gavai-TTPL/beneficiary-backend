@@ -35,6 +35,9 @@ export class UserApplication {
   @Column({ type: 'varchar', length: 20 })
   status: string;
 
+  @Column({ type: 'jsonb' })
+  application_data: Record<string, any>;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
