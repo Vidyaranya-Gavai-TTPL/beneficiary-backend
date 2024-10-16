@@ -18,7 +18,7 @@ export class UserInfo {
   father_name: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  samarga_id: string;
+  samagra_id: string;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
   current_school_name: string;

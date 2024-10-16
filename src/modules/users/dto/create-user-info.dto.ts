@@ -18,7 +18,7 @@ export class CreateUserInfoDto {
 
   @IsOptional()
   @IsString()
-  samarga_id?: string;
+  samagra_id?: string;
 
   @IsOptional()
   @IsString()
