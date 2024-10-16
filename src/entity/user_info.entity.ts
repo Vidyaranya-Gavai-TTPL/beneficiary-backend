@@ -39,7 +39,7 @@ export class UserInfo {
   student_type: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  aadhar: string;
+  aadhaar: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   caste: string;

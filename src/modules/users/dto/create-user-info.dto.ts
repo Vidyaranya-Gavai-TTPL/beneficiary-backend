@@ -45,7 +45,7 @@ export class CreateUserInfoDto {
 
   @IsOptional()
   @IsString()
-  aadhar?: string;
+  aadhaar?: string;
 
   @IsOptional()
   @IsString()
