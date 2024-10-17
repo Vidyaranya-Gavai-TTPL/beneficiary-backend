@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { User } from '../../entity/user.entity';
@@ -19,7 +20,10 @@ import { UserWithInfo } from './interfaces/user-with-info.interface';
 import { CreateConsentDto } from './dto/create-consent.dto';
 import { UserApplication } from '@entities/user_applications.entity';
 import { CreateUserApplicationDto } from './dto/create-user-application-dto';
+import { AuthGuard } from '@modules/auth/auth.guard';
 
+
+// @UseGuards(AuthGuard)
 @ApiTags('users')
 @Controller('users')
 export class UserController {
