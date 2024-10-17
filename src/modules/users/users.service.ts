@@ -69,8 +69,8 @@ export class UserService {
       where: { user_id },
     });
     if (userInfo && decryptData) {
-      const decrypted = this.encryptionService.decrypt(userInfo?.aadhar);
-      userInfo.aadhar = decrypted;
+      const decrypted = this.encryptionService.decrypt(userInfo?.aadhaar);
+      userInfo.aadhaar = decrypted;
     }
 
     return userInfo;
@@ -142,11 +142,11 @@ export class UserService {
         // Assign the user_id from userData to createUserInfoDto
         createUserInfoDto.user_id = userData.user.user_id;
 
-        // Encrypt the Aadhar before saving
+        // Encrypt the aadhaar before saving
         const encrypted = this.encryptionService.encrypt(
-          createUserInfoDto.aadhar,
+          createUserInfoDto.aadhaar,
         );
-        createUserInfoDto.aadhar = encrypted;
+        createUserInfoDto.aadhaar = encrypted;
 
         // Create and save the new UserInfo record
         const userInfo = this.userInfoRepository.create(createUserInfoDto);
@@ -166,11 +166,11 @@ export class UserService {
     user_id: string,
     updateUserInfoDto: CreateUserInfoDto,
   ): Promise<UserInfo> {
-    const userInfo = await this.findOneUserInfo(user_id, true); // Fetch UserInfo directly
-
+    const userInfo = await this.userInfoRepository.findOne({
+      where: { user_id },
+    });
     Object.assign(userInfo, updateUserInfoDto);
-
-    return await this.userInfoRepository.save(userInfo);
+    return this.userInfoRepository.save(userInfo);
   }
   // Create a new consent record
   async createUserConsent(
@@ -205,12 +205,13 @@ export class UserService {
   async findAllApplicationsByUserId(
     requestBody: { filters?: any; search?: string },
   ): Promise<UserApplication[]> {
+
     let whereClause = {};
     const filterKeys = this.userApplicationRepository.metadata.columns.map(
       (column) => column.propertyName,
     );
     const { filters = {}, search } = requestBody; // Default filters to an empty object
-  
+
     // Handle filters if provided
     if (filters && Object.keys(filters).length > 0) {
       for (const [key, value] of Object.entries(filters)) {
@@ -220,7 +221,7 @@ export class UserService {
         }
       }
     }
-  
+
     // Handle search for `application_name` using ILIKE
     if (search && search.trim().length > 0) {
       whereClause['application_name'] = ILike(`%${search}%`);
@@ -231,6 +232,12 @@ export class UserService {
   
     console.log("whereClause", whereClause);
     
+
+      // Exclude null values
+    }
+
+    console.log('whereClause', whereClause);
+
     // Find and return the applications based on the where clause
     return await this.userApplicationRepository.find({
       where: whereClause,
@@ -246,7 +253,7 @@ export class UserService {
     const lastNameWithUnderscore = body?.last_name?.replace(/\s+/g, '_');
 
     // Extract the last 2 digits of Aadhar
-    const lastTwoDigits = body?.aadhar?.slice(-2);
+    const lastTwoDigits = body?.aadhaar?.slice(-2);
 
     // Concatenate the processed first name, last name, and last 2 digits of Aadhar
     const username =
