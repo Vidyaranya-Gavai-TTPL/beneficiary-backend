@@ -6,13 +6,16 @@ import {
   Post,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from 'src/logger/logger.service';
 import { ContentService } from './content.service';
 import { CreateOrderDto } from './dto/create-user.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@modules/auth/auth.guard';
 
+// @UseGuards(AuthGuard)
 @ApiTags('Content')
 @Controller('content')
 export class ContentController {
