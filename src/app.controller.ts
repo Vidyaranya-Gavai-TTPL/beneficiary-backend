@@ -1,8 +1,11 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { LoggerService } from './logger/logger.service';
 import { ProxyService } from './services/proxy/proxy.service';
 import { ContentService } from './content/content.service';
+import { AuthGuard } from '@modules/auth/auth.guard';
+
+
 
 @Controller()
 export class AppController {
@@ -21,6 +24,7 @@ export class AppController {
   }
 
   @Post('/select')
+  // @UseGuards(AuthGuard)
   async selectContent(@Request() request, @Body() body) {
     let endPoint = 'select'
     console.log("select method calling...")
@@ -28,6 +32,7 @@ export class AppController {
   }
 
   @Post('/init')
+  // @UseGuards(AuthGuard)
   async initContent(@Request() request, @Body() body) {
     let endPoint = 'init'
     console.log("select method calling...")
@@ -35,6 +40,7 @@ export class AppController {
   }
 
   @Post('/confirm')
+  // @UseGuards(AuthGuard)
   async confirmContent(@Request() request, @Body() body) {
     let endPoint = 'confirm'
     console.log("confirm method calling...")
@@ -42,6 +48,7 @@ export class AppController {
   }
 
   @Post('/status')
+  // @UseGuards(AuthGuard)
   async statusContent(@Request() request, @Body() body) {
     let endPoint = 'status'
     console.log("status method calling...")
@@ -49,11 +56,11 @@ export class AppController {
   }
 
   @Post('/update')
+  // @UseGuards(AuthGuard)
   async updateContent(@Request() request, @Body() body) {
     let endPoint = 'update'
     console.log("update method calling...")
     return await this.proxyService.bapCLientApi2(endPoint, body)
   }
-
 
 }

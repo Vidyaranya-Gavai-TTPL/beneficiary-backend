@@ -6,13 +6,16 @@ import {
   Post,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from 'src/logger/logger.service';
 import { ContentService } from './content.service';
 import { CreateOrderDto } from './dto/create-user.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@modules/auth/auth.guard';
 
+// @UseGuards(AuthGuard)
 @ApiTags('Content')
 @Controller('content')
 export class ContentController {
@@ -24,7 +27,7 @@ export class ContentController {
   @Post('/search')
   async getContent(@Request() request, @Body() body) {
     this.logger.log('POST /search');
-    return this.contentService.getJobs(body.filters);
+    return this.contentService.getJobs(body);
   }
 
   @Post('/responseSearch')
@@ -70,22 +73,22 @@ export class ContentController {
   }
 
   // create jobs by cronjob
-  @Cron(CronExpression.EVERY_8_HOURS)
-  async jobsApiCall() {
-    this.logger.log('Cronjob create service executed at');
-    return this.contentService.jobsApiCall();
-  }
+  // @Cron(CronExpression.EVERY_8_HOURS)
+  // async jobsApiCall() {
+  //   this.logger.log('Cronjob create service executed at');
+  //   return this.contentService.jobsApiCall();
+  // }
 
-  // delete jobs by cronjob
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
-  async deleteJobs() {
-    this.logger.log('Cronjob delete Jobs service executed at');
-    let deletedResponse = await this.contentService.deleteJobs();
-    if (deletedResponse) {
-      console.log('response deleted successfully at ' + Date.now());
-      return this.contentService.jobsApiCall();
-    }
-  }
+  // // delete jobs by cronjob
+  // @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  // async deleteJobs() {
+  //   this.logger.log('Cronjob delete Jobs service executed at');
+  //   let deletedResponse = await this.contentService.deleteJobs();
+  //   if (deletedResponse) {
+  //     console.log('response deleted successfully at ' + Date.now());
+  //     return this.contentService.jobsApiCall();
+  //   }
+  // }
 
   // delete response cache by cronjob
   // @Cron(CronExpression.EVERY_DAY_AT_1AM)

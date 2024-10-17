@@ -208,10 +208,10 @@ export class UserService {
     return userApplication;
   }
 
-  async findAllApplicationsByUserId(requestBody: {
-    filters?: any;
-    search?: string;
-  }): Promise<UserApplication[]> {
+  async findAllApplicationsByUserId(
+    requestBody: { filters?: any; search?: string },
+  ): Promise<UserApplication[]> {
+
     let whereClause = {};
     const filterKeys = this.userApplicationRepository.metadata.columns.map(
       (column) => column.propertyName,
@@ -232,6 +232,12 @@ export class UserService {
     if (search && search.trim().length > 0) {
       whereClause['application_name'] = ILike(`%${search}%`);
       // Add a condition to filter out records with null application_name
+      
+       // Exclude null values
+    }
+  
+    console.log("whereClause", whereClause);
+    
 
       // Exclude null values
     }
@@ -243,6 +249,7 @@ export class UserService {
       where: whereClause,
     });
   }
+
 
   public async registerUserWithUsername(body) {
     // Replace spaces with underscores in first name and last name
