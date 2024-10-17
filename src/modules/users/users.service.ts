@@ -169,10 +169,16 @@ export class UserService {
     const userInfo = await this.userInfoRepository.findOne({
       where: { user_id },
     });
+    console.log('updateUserInfoDto?.aadhaar', updateUserInfoDto?.aadhaar);
+
     if (updateUserInfoDto?.aadhaar) {
+      console.log('------------------>', updateUserInfoDto?.aadhaar);
+
       const encrypted = this.encryptionService.encrypt(
         updateUserInfoDto?.aadhaar,
       );
+      console.log('enc data-->', encrypted);
+
       updateUserInfoDto.aadhaar = encrypted;
     }
     Object.assign(userInfo, updateUserInfoDto);
@@ -208,10 +214,10 @@ export class UserService {
     return userApplication;
   }
 
-  async findAllApplicationsByUserId(
-    requestBody: { filters?: any; search?: string },
-  ): Promise<UserApplication[]> {
-
+  async findAllApplicationsByUserId(requestBody: {
+    filters?: any;
+    search?: string;
+  }): Promise<UserApplication[]> {
     let whereClause = {};
     const filterKeys = this.userApplicationRepository.metadata.columns.map(
       (column) => column.propertyName,
@@ -231,25 +237,13 @@ export class UserService {
     // Handle search for `application_name` using ILIKE
     if (search && search.trim().length > 0) {
       whereClause['application_name'] = ILike(`%${search}%`);
-      // Add a condition to filter out records with null application_name
-      
-       // Exclude null values
     }
-  
-    console.log("whereClause", whereClause);
-    
-
-      // Exclude null values
-    }
-
-    console.log('whereClause', whereClause);
 
     // Find and return the applications based on the where clause
     return await this.userApplicationRepository.find({
       where: whereClause,
     });
   }
-
 
   public async registerUserWithUsername(body) {
     // Replace spaces with underscores in first name and last name
