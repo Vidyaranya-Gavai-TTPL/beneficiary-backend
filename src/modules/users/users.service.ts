@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, IsNull, Not, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { User } from '../../entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -138,7 +138,7 @@ export class UserService {
       const userData = await this.registerUserWithUsername(createUserInfoDto);
 
       // Check if userData and userData.user exist
-      if (userData && userData.user && userData.user.user_id) {
+      if (userData?.user?.user_id) {
         // Assign the user_id from userData to createUserInfoDto
         createUserInfoDto.user_id = userData.user.user_id;
 
