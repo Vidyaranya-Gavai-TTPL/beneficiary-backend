@@ -123,7 +123,7 @@ export class ContentService {
                     : '',
                   bpp_id: responses.context.bpp_id
                     ? responses.context.bpp_id
-                    : responses.context.bpp_id,
+                    : '',
                   bpp_uri: responses.context.bpp_uri
                     ? responses.context.bpp_uri
                     : '',
