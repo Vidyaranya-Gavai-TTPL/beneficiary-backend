@@ -15,7 +15,7 @@ import { CreateOrderDto } from './dto/create-user.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@modules/auth/auth.guard';
 
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @ApiTags('Content')
 @Controller('content')
 export class ContentController {
