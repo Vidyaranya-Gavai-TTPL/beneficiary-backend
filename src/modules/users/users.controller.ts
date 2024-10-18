@@ -22,8 +22,7 @@ import { UserApplication } from '@entities/user_applications.entity';
 import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { AuthGuard } from '@modules/auth/auth.guard';
 
-
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @ApiTags('users')
 @Controller('users')
 export class UserController {
@@ -127,7 +126,7 @@ export class UserController {
     type: [UserApplication],
   })
   async findAllApplicationsByUserId(
-    @Body() requestBody: { filters: any, search: string },
+    @Body() requestBody: { filters: any; search: string },
   ): Promise<UserApplication[]> {
     return this.userService.findAllApplicationsByUserId(requestBody);
   }
