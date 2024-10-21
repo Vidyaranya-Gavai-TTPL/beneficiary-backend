@@ -142,7 +142,7 @@ export class HasuraService {
                   item.descriptor?.code === 'gender-eligibility' &&
                   (item.value?.toLowerCase() ===
                     filters['gender-eligibility'].toLowerCase() || // Exact match
-                    item.value?.toLowerCase() === 'all'), // Match if the value is "all"
+                    item.value?.toLowerCase() === 'all gender'), // Match if the value is "all"
               )
             : true;
 
