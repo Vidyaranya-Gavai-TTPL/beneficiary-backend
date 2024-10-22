@@ -17,7 +17,6 @@ import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { KeycloakService } from '@services/keycloak/keycloak.service';
 import { SuccessResponse } from 'src/common/responses/success-response';
 import { ErrorResponse } from 'src/common/responses/error-response';
-import { UUID } from 'typeorm/driver/mongodb/bson.typings';
 @Injectable()
 export class UserService {
   constructor(
@@ -38,9 +37,9 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
     try {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: createUserDto.email },
-      });
+      // const existingUser = await this.userRepository.findOne({
+      //   where: { email: createUserDto.email },
+      // });
       // if (existingUser) {
       //   return new ErrorResponse({
       //     statusCode: HttpStatus.CONFLICT, // Created
