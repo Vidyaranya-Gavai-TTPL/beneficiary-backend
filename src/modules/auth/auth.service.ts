@@ -1,6 +1,8 @@
 import { UserService } from '@modules/users/users.service';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ErrorResponse } from 'src/common/responses/error-response';
+import { SuccessResponse } from 'src/common/responses/success-response';
 
 import { KeycloakService } from 'src/services/keycloak/keycloak.service';
 
@@ -30,16 +32,15 @@ export class AuthService {
     const token = await this.keycloakService.getUserKeycloakToken(data);
 
     if (token) {
-      return response.status(200).send({
-        success: true,
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
         message: 'LOGGEDIN_SUCCESSFULLY',
         data: token,
       });
     } else {
-      return response.status(401).send({
-        success: false,
-        message: 'INVALID_USERNAME_PASSWORD_MESSAGE',
-        data: null,
+      return new ErrorResponse({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorMessage: 'INVALID_USERNAME_PASSWORD_MESSAGE',
       });
     }
   }
@@ -50,10 +51,9 @@ export class AuthService {
     console.log('isMobileExist', isMobileExist);
 
     if (isMobileExist) {
-      return response.status(422).send({
-        success: false,
-        message: 'Mobile Number Already Exists',
-        data: {},
+      return new ErrorResponse({
+        statusCode: HttpStatus.CONFLICT,
+        errorMessage: 'Mobile Number Already Exists',
       });
     }
 
@@ -89,16 +89,14 @@ export class AuthService {
             registerUserRes.error.message ==
             'Request failed with status code 409'
           ) {
-            return response.status(409).json({
-              success: false,
-              message: 'User already exists!',
-              data: {},
+            return new ErrorResponse({
+              statusCode: HttpStatus.CONFLICT,
+              errorMessage: 'User already exists!',
             });
           } else {
-            return response.status(200).json({
-              success: false,
-              message: registerUserRes.error.message,
-              data: {},
+            return new ErrorResponse({
+              statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+              errorMessage: registerUserRes.error.message,
             });
           }
         } else if (registerUserRes.headers.location) {
@@ -111,8 +109,8 @@ export class AuthService {
           const result = await this.userService.createKeycloakData(body);
 
           // If successful, return success response
-          return response.status(200).send({
-            success: true,
+          return new SuccessResponse({
+            statusCode: HttpStatus.OK,
             message: 'User created successfully',
             data: {
               user: result,
@@ -121,10 +119,9 @@ export class AuthService {
             },
           });
         } else {
-          return response.status(200).json({
-            success: false,
-            message: 'Unable to create user in Keycloak',
-            data: {},
+          return new ErrorResponse({
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            errorMessage: 'Unable to create user in Keycloak',
           });
         }
       } catch (error) {
@@ -138,18 +135,16 @@ export class AuthService {
           );
         }
 
-        return response.status(500).json({
-          success: false,
-          message:
+        return new ErrorResponse({
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          errorMessage:
             'Error during user registration. Keycloak user has been rolled back.',
-          data: {},
         });
       }
     } else {
-      return response.status(200).json({
-        success: false,
-        message: 'Unable to get Keycloak token',
-        data: {},
+      return new ErrorResponse({
+        statusCode: HttpStatus.OK,
+        errorMessage: 'Unable to get Keycloak token',
       });
     }
   }
@@ -168,15 +163,15 @@ export class AuthService {
       }
 
       // Return successful logout response
-      return response.status(200).send({
-        success: true,
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
         message: 'LOGGED OUT SUCCESSFULLY',
       });
     } catch (error) {
       console.error('Error during logout:', error.message);
-      return response.status(500).send({
-        success: false,
-        message: 'LOGOUT_FAILED',
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: 'LOGOUT_FAILED',
       });
     }
   }

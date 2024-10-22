@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { User } from '../../entity/user.entity';
@@ -15,6 +15,9 @@ import { CreateConsentDto } from './dto/create-consent.dto';
 import { UserApplication } from '@entities/user_applications.entity';
 import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { KeycloakService } from '@services/keycloak/keycloak.service';
+import { SuccessResponse } from 'src/common/responses/success-response';
+import { ErrorResponse } from 'src/common/responses/error-response';
+import { UUID } from 'typeorm/driver/mongodb/bson.typings';
 @Injectable()
 export class UserService {
   constructor(
@@ -32,20 +35,57 @@ export class UserService {
     private readonly keycloakService: KeycloakService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
-    return await this.userRepository.save(user);
+    try {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: createUserDto.email },
+      });
+      // if (existingUser) {
+      //   return new ErrorResponse({
+      //     statusCode: HttpStatus.CONFLICT, // Created
+      //     errorMessage: 'User with email already exist',
+      //   });
+      // }
+      const savedUser = await this.userRepository.save(user);
+
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK, // Created
+        message: 'User created successfully.',
+        data: savedUser,
+      });
+    } catch (error) {
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR, // Created
+        errorMessage: error.message,
+      });
+    }
   }
 
-  async update(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(userId: string, updateUserDto: UpdateUserDto) {
     const existingUser = await this.userRepository.findOne({
       where: { user_id: userId },
     });
     if (!existingUser) {
-      throw new NotFoundException(`User with ID '${userId}' not found`);
+      return new ErrorResponse({
+        statusCode: HttpStatus.NOT_FOUND, // Created
+        errorMessage: `User with ID '${userId}' not found`,
+      });
     }
     Object.assign(existingUser, updateUserDto);
-    return await this.userRepository.save(existingUser);
+    try {
+      const updatedUser = await this.userRepository.save(existingUser);
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'User updated successfully',
+        data: updatedUser,
+      });
+    } catch (error) {
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: error,
+      });
+    }
   }
 
   async findOne(sso_id: string, decryptData?: boolean): Promise<UserWithInfo> {
