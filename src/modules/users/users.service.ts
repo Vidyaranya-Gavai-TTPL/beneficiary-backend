@@ -86,7 +86,7 @@ export class UserService {
       });
     }
   }
-  async findOne(req: any, decryptData?: boolean): Promise<UserWithInfo> {
+  async findOne(req: any, decryptData?: boolean) {
     const sso_id = req?.user?.keycloak_id;
 
     const user = await this.userRepository.findOne({ where: { sso_id } });
@@ -94,11 +94,15 @@ export class UserService {
       throw new NotFoundException(`User with ID '${sso_id}' not found`);
     }
     const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
-    const final: UserWithInfo = {
-      user,
-      userInfo,
+    const final = {
+      ...user,
+      ...userInfo,
     };
-    return final;
+    return new SuccessResponse({
+      statusCode: HttpStatus.OK,
+      message: 'User created successfully.',
+      data: final,
+    });
   }
 
   async findOneUserInfo(

@@ -65,7 +65,7 @@ export class UserController {
   async findOne(
     @Req() req: Request,
     @Query('decryptData') decryptData?: boolean, // Optional query parameter
-  ): Promise<UserWithInfo> {
+  ) {
     return this.userService.findOne(req, decryptData); // Returns UserWithInfo
   }
 
