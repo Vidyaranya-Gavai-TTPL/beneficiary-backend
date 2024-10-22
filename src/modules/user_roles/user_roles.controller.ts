@@ -6,14 +6,15 @@ import {
   Query,
   Body,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UserRolesService } from './user_roles.service';
 import { UserRole } from '@entities/user_roles.entity';
 import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { CreateUserRoleDto } from './dto/create-user-role.dto';
+import { AuthGuard } from '@modules/auth/auth.guard';
 
-
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @ApiTags('User Roles')
 @Controller('user_roles')
 export class UserRolesController {

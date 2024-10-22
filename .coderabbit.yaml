@@ -1,13 +1,14 @@
-language: 'en'
-
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
 early_access: false
+enable_free_tier: true
 
 reviews:
   request_changes_workflow: true
   high_level_summary: true
   poem: false
   review_status: true
-  collapse_walkthrough: false
+  collapse_walkthrough: true
   path_filters:
     - '!**/.xml'
   path_instructions:
@@ -35,3 +36,7 @@ reviews:
 
 chat:
   auto_reply: true
+  
+knowledge_base:
+  opt_out: true
+

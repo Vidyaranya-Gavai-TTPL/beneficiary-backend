@@ -8,9 +8,9 @@ import {
   Query,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
-import { User } from '../../entity/user.entity';
 import {
   ApiBasicAuth,
   ApiOperation,
@@ -38,7 +38,7 @@ export class UserController {
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+  async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
@@ -47,9 +47,9 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'User successfully updated' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async update(
-    @Param('userId') userId: string,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User> {
+  ) {
     return this.userService.update(userId, updateUserDto);
   }
   @Get('/get_one') // Optional route parameter

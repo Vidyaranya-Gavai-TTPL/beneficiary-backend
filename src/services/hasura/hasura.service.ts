@@ -1,6 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { ErrorResponse } from 'src/common/responses/error-response';
+import { SuccessResponse } from 'src/common/responses/success-response';
 
 @Injectable()
 export class HasuraService {
@@ -58,18 +60,19 @@ export class HasuraService {
       const filteredJobs = this.filterJobs(jobs, filters, search);
 
       // Return the response in the desired format
-      return {
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'Ok.',
         data: {
           ubi_network_cache: filteredJobs,
         },
-      };
+      });
     } catch (error) {
       //this.logger.error("Something Went wrong in creating Admin", error);
-      console.log('error', error);
-      throw new HttpException(
-        'Unable to Fetch content!',
-        HttpStatus.BAD_REQUEST,
-      );
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: error.message, // Use error message if available
+      });
     }
   }
 
@@ -131,7 +134,7 @@ export class HasuraService {
                   item.descriptor?.code === 'social-eligibility' &&
                   (item.value?.toLowerCase() ===
                     filters['social-eligibility'].toLowerCase() || // Exact match
-                    item.value?.toLowerCase() === 'all'), // Match if the value is "all"
+                    item.value?.toLowerCase() === 'all gender'), // Match if the value is "all"
               )
             : true;
 
@@ -142,7 +145,7 @@ export class HasuraService {
                   item.descriptor?.code === 'gender-eligibility' &&
                   (item.value?.toLowerCase() ===
                     filters['gender-eligibility'].toLowerCase() || // Exact match
-                    item.value?.toLowerCase() === 'all'), // Match if the value is "all"
+                    item.value?.toLowerCase() === 'all gender'), // Match if the value is "all"
               )
             : true;
 
