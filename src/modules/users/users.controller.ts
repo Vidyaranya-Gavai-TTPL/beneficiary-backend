@@ -3,15 +3,21 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Body,
   Param,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { User } from '../../entity/user.entity';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBasicAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDocDTO } from './dto/user_docs.dto';
@@ -22,8 +28,7 @@ import { UserApplication } from '@entities/user_applications.entity';
 import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { AuthGuard } from '@modules/auth/auth.guard';
 
-
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @ApiTags('users')
 @Controller('users')
 export class UserController {
@@ -47,23 +52,21 @@ export class UserController {
   ): Promise<User> {
     return this.userService.update(userId, updateUserDto);
   }
-
-  @Get('/get_one/:userId')
-  @ApiOperation({ summary: 'Get a user by userId' })
+  @Get('/get_one') // Optional route parameter
+  @ApiBasicAuth('access-token')
   @ApiResponse({ status: 200, description: 'User data' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiQuery({
+    name: 'decryptData',
+    required: false, // Marks the query parameter as optional
+    description: 'Whether to decrypt user data (optional)',
+    type: Boolean,
+  })
   async findOne(
-    @Param('userId') userId: string,
-    @Query('decryptData') decryptData?: boolean,
+    @Req() req: Request,
+    @Query('decryptData') decryptData?: boolean, // Optional query parameter
   ): Promise<UserWithInfo> {
-    return this.userService.findOne(userId, decryptData); // Returns UserWithInfo
-  }
-  @Delete('/delete/:userId')
-  @ApiOperation({ summary: 'Delete a user by userId' })
-  @ApiResponse({ status: 200, description: 'User successfully deleted' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async remove(@Param('userId') userId: string): Promise<void> {
-    return this.userService.remove(userId);
+    return this.userService.findOne(req, decryptData); // Returns UserWithInfo
   }
 
   @Post('/user_docs')
@@ -127,7 +130,7 @@ export class UserController {
     type: [UserApplication],
   })
   async findAllApplicationsByUserId(
-    @Body() requestBody: { filters: any, search: string },
+    @Body() requestBody: { filters: any; search: string },
   ): Promise<UserApplication[]> {
     return this.userService.findAllApplicationsByUserId(requestBody);
   }

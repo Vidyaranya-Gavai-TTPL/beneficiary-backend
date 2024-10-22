@@ -46,6 +46,10 @@ async function bootstrap() {
     .setDescription('API documentation for UBI Beneficiary')
     .setVersion('1.0')
     .addServer('/api')
+    .addApiKey(
+      { type: 'apiKey', name: 'Authorization', in: 'header' },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

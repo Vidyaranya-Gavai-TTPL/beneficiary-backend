@@ -47,16 +47,17 @@ export class UserService {
     Object.assign(existingUser, updateUserDto);
     return await this.userRepository.save(existingUser);
   }
+  async findOne(req: any, decryptData?: boolean): Promise<UserWithInfo> {
+    const sso_id = req?.user?.keycloak_id;
 
-  async findOne(sso_id: string, decryptData?: boolean): Promise<UserWithInfo> {
-    let user = await this.userRepository.findOne({ where: { sso_id } });
+    const user = await this.userRepository.findOne({ where: { sso_id } });
     if (!user) {
       throw new NotFoundException(`User with ID '${sso_id}' not found`);
     }
     const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
     const final: UserWithInfo = {
       user,
-      userInfo: userInfo,
+      userInfo,
     };
     return final;
   }
@@ -76,13 +77,13 @@ export class UserService {
     return userInfo;
   }
 
-  async remove(user_id: string): Promise<void> {
-    const userWithInfo = await this.findOne(user_id);
+  // async remove(user_id: string): Promise<void> {
+  //   const userWithInfo = await this.findOne(user_id);
 
-    const user = userWithInfo.user;
+  //   const user = userWithInfo.user;
 
-    await this.userRepository.remove(user);
-  }
+  //   await this.userRepository.remove(user);
+  // }
   // Method to check if mobile number exists
   async findByMobile(mobile: string): Promise<User | undefined> {
     return await this.userRepository.findOne({
