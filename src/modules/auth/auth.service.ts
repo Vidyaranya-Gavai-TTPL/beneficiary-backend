@@ -45,7 +45,7 @@ export class AuthService {
     }
   }
 
-  public async register(body, response) {
+  public async register(body) {
     // Step 1: Check if the mobile number already exists in the 'users' table using TypeORM
     let isMobileExist = await this.userService.findByMobile(body?.phone_number);
     console.log('isMobileExist', isMobileExist);
@@ -112,11 +112,7 @@ export class AuthService {
           return new SuccessResponse({
             statusCode: HttpStatus.OK,
             message: 'User created successfully',
-            data: {
-              user: result,
-              keycloak_id: keycloak_id,
-              username: data_to_create_user.username,
-            },
+            data: result,
           });
         } else {
           return new ErrorResponse({

@@ -52,21 +52,21 @@ export class UserController {
   ) {
     return this.userService.update(userId, updateUserDto);
   }
-  @Get('/get_one') // Optional route parameter
+  @Get('/get_one')
   @ApiBasicAuth('access-token')
   @ApiResponse({ status: 200, description: 'User data' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiQuery({
     name: 'decryptData',
-    required: false, // Marks the query parameter as optional
+    required: false,
     description: 'Whether to decrypt user data (optional)',
     type: Boolean,
   })
   async findOne(
     @Req() req: Request,
-    @Query('decryptData') decryptData?: boolean, // Optional query parameter
+    @Query('decryptData') decryptData?: boolean,
   ) {
-    return this.userService.findOne(req, decryptData); // Returns UserWithInfo
+    return await this.userService.findOne(req, decryptData);
   }
 
   @Post('/user_docs')

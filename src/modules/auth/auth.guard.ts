@@ -7,6 +7,12 @@ import {
 import { Request } from 'express';
 import { jwtDecode } from 'jwt-decode';
 import { Observable } from 'rxjs';
+interface AuthenticatedRequest extends Request {
+  user: {
+    keycloak_id: string;
+    // other properties
+  };
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -14,7 +20,7 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const ctx = context.switchToHttp();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<AuthenticatedRequest>();
 
     // Check if Authorization header is present
     const authHeader = request.header('authorization');
@@ -24,7 +30,7 @@ export class AuthGuard implements CanActivate {
 
     // Split and validate the Bearer token format
     const [bearer, token] = authHeader.split(' ');
-    if (bearer !== 'Bearer' || !token) {
+    if (bearer.toLowerCase() !== 'bearer' || !token) {
       throw new UnauthorizedException('Bearer token not found or invalid');
     }
 
@@ -41,10 +47,9 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Token has expired');
     }
 
-    // Type assertion: Add `user` property to `request`
-    (request as any).user = {
+    request.user = {
       keycloak_id: decoded.sub,
-      ...decoded, // Optionally spread other properties
+      ...decoded,
     };
 
     return true; // Token is valid
