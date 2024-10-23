@@ -14,7 +14,7 @@ export class RegisterDTO {
 
   @ApiProperty({})
   @IsNotEmpty({ message: 'Mobile number is required' })
-  @Matches(/^[5-9][0-9]{9}$/, {
+  @Matches(/^[5-9]\d{9}$/, {
     message:
       'Phone number must start with a digit from 5 to 9 and have 10 digits total',
   })
