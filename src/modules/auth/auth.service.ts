@@ -66,7 +66,12 @@ export class AuthService {
       // Step 5: Register user in PostgreSQL
       body.keycloak_id = keycloakId;
       body.username = dataToCreateUser.username;
-      const user = await this.userService.createKeycloakData(body);
+      const userData = {
+        ...body,
+        keycloak_id: keycloakId,
+        username: dataToCreateUser.username,
+      };
+      const user = await this.userService.createKeycloakData(userData);
 
       // Step 6: Return success response
       return new SuccessResponse({
@@ -121,9 +126,7 @@ export class AuthService {
     );
 
     if (registerUserRes.error) {
-      if (
-        registerUserRes.error.message === 'Request failed with status code 409'
-      ) {
+      if (registerUserRes?.error?.response?.status === 409) {
         throw new ErrorResponse({
           statusCode: HttpStatus.CONFLICT,
           errorMessage: 'User already exists!',
