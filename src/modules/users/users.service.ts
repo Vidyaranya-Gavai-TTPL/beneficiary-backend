@@ -42,15 +42,6 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
     try {
-      // const existingUser = await this.userRepository.findOne({
-      //   where: { email: createUserDto.email },
-      // });
-      // if (existingUser) {
-      //   return new ErrorResponse({
-      //     statusCode: HttpStatus.CONFLICT, // Created
-      //     errorMessage: 'User with email already exist',
-      //   });
-      // }
       const savedUser = await this.userRepository.save(user);
 
       return new SuccessResponse({
@@ -122,7 +113,6 @@ export class UserService {
       where: { user_id },
     });
     if (userInfo && decryptData) {
-      console.log('PPPPPPPPPPPPPPPP');
       const decrypted = this.encryptionService.decrypt(userInfo?.aadhaar);
       console.log('decrypted', decrypted);
       userInfo.aadhaar = decrypted;
@@ -131,13 +121,14 @@ export class UserService {
     return userInfo;
   }
 
-  // async remove(user_id: string): Promise<void> {
-  //   const userWithInfo = await this.findOne(user_id);
+  /*async remove(user_id: string): Promise<void> {
+    const userWithInfo = await this.findOne(user_id);
 
-  //   const user = userWithInfo.user;
+    const user = userWithInfo.user;
 
-  //   await this.userRepository.remove(user);
-  // }
+    await this.userRepository.remove(user);
+  }*/
+
   // Method to check if mobile number exists
   async findByMobile(mobile: string): Promise<User | undefined> {
     return await this.userRepository.findOne({

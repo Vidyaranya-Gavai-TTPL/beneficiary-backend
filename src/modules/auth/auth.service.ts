@@ -85,6 +85,12 @@ export class AuthService {
   }
 
   private async checkMobileExistence(phoneNumber: string) {
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
+      throw new ErrorResponse({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorMessage: 'Invalid phone number format',
+      });
+    }
     const isMobileExist = await this.userService.findByMobile(phoneNumber);
     if (isMobileExist) {
       throw new ErrorResponse({
@@ -139,7 +145,20 @@ export class AuthService {
     }
 
     if (registerUserRes.headers.location) {
-      const keycloakId = registerUserRes.headers.location.split('/').pop();
+      const locationParts = registerUserRes.headers.location.split('/');
+      if (locationParts?.length === 0) {
+        throw new ErrorResponse({
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          errorMessage: 'Invalid location header format',
+        });
+      }
+      const keycloakId = registerUserRes?.headers?.location.split('/').pop();
+      if (!keycloakId) {
+        throw new ErrorResponse({
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          errorMessage: 'Unable to extract Keycloak ID',
+        });
+      }
       return keycloakId;
     }
 
