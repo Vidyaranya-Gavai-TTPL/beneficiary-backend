@@ -16,7 +16,6 @@ import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { KeycloakService } from '@services/keycloak/keycloak.service';
 import { SuccessResponse } from 'src/common/responses/success-response';
 import { ErrorResponse } from 'src/common/responses/error-response';
-import { application } from 'express';
 @Injectable()
 export class UserService {
   constructor(
