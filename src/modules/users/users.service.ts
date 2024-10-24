@@ -85,13 +85,20 @@ export class UserService {
   async findOne(req: any, decryptData?: boolean) {
     const sso_id = req?.user?.keycloak_id;
     if (!sso_id) {
-      throw new UnauthorizedException('Invalid or missing Keycloak ID');
+      return new ErrorResponse({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorMessage: 'Invalid or missing Keycloak ID',
+      });
     }
 
     const user = await this.userRepository.findOne({ where: { sso_id } });
     if (!user) {
-      throw new NotFoundException(`User with ID '${sso_id}' not found`);
+      return new ErrorResponse({
+        statusCode: HttpStatus.NOT_FOUND,
+        errorMessage: `User with ID '${sso_id}' not found`,
+      });
     }
+
     const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
     console.log('userInfo', userInfo);
     const final = {
