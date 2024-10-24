@@ -13,6 +13,7 @@ import { UserInfo } from '@entities/user_info.entity';
 import { EncryptionService } from 'src/common/helper/encryptionService';
 import { Consent } from '@entities/consent.entity';
 import { UserApplication } from '@entities/user_applications.entity';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { UserApplication } from '@entities/user_applications.entity';
     KeycloakService,
     UserService,
     EncryptionService,
+    LoggerService,
   ],
   exports: [AuthService, UserService, EncryptionService],
 })

@@ -26,6 +26,7 @@ import { CreateConsentDto } from './dto/create-consent.dto';
 import { UserApplication } from '@entities/user_applications.entity';
 import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { AuthGuard } from '@modules/auth/auth.guard';
+import { Request } from 'express';
 
 @UseGuards(AuthGuard)
 @ApiTags('users')

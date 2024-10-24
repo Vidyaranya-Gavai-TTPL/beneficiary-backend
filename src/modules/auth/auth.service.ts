@@ -3,6 +3,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ErrorResponse } from 'src/common/responses/error-response';
 import { SuccessResponse } from 'src/common/responses/success-response';
+import { LoggerService } from 'src/logger/logger.service';
 
 import { KeycloakService } from 'src/services/keycloak/keycloak.service';
 
@@ -20,6 +21,7 @@ export class AuthService {
     private configService: ConfigService,
     private readonly keycloakService: KeycloakService,
     private userService: UserService,
+    private readonly loggerService: LoggerService,
   ) {}
 
   public async login(req, response) {
@@ -64,8 +66,6 @@ export class AuthService {
       );
 
       // Step 5: Register user in PostgreSQL
-      body.keycloak_id = keycloakId;
-      body.username = dataToCreateUser.username;
       const userData = {
         ...body,
         keycloak_id: keycloakId,
@@ -133,6 +133,10 @@ export class AuthService {
 
     if (registerUserRes.error) {
       if (registerUserRes?.error?.response?.status === 409) {
+        this.loggerService.error(
+          'User already exists!',
+          registerUserRes?.error,
+        );
         throw new ErrorResponse({
           statusCode: HttpStatus.CONFLICT,
           errorMessage: 'User already exists!',
@@ -169,12 +173,13 @@ export class AuthService {
   }
 
   private async handleRegistrationError(error, keycloakId) {
-    console.error('Error during user registration:', error);
+    this.loggerService.error('Error during user registration:', error);
 
     if (keycloakId) {
       await this.keycloakService.deleteUser(keycloakId);
-      console.log(
+      this.loggerService.error(
         'Keycloak user deleted due to failure in PostgreSQL creation',
+        error,
       );
     }
 

@@ -114,7 +114,7 @@ export class UserService {
     });
     if (userInfo && decryptData) {
       const decrypted = this.encryptionService.decrypt(userInfo?.aadhaar);
-      console.log('decrypted', decrypted);
+
       userInfo.aadhaar = decrypted;
     }
 
