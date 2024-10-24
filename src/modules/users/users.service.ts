@@ -1,9 +1,4 @@
-import {
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { User } from '../../entity/user.entity';
@@ -14,7 +9,6 @@ import { UserDoc } from '@entities/user_docs.entity';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserInfo } from '@entities/user_info.entity';
 import { EncryptionService } from 'src/common/helper/encryptionService';
-import { UserWithInfo } from './interfaces/user-with-info.interface';
 import { Consent } from '@entities/consent.entity';
 import { CreateConsentDto } from './dto/create-consent.dto';
 import { UserApplication } from '@entities/user_applications.entity';
@@ -83,33 +77,40 @@ export class UserService {
     }
   }
   async findOne(req: any, decryptData?: boolean) {
-    const sso_id = req?.user?.keycloak_id;
-    if (!sso_id) {
+    try {
+      const sso_id = req?.user?.keycloak_id;
+      if (!sso_id) {
+        return new ErrorResponse({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          errorMessage: 'Invalid or missing Keycloak ID',
+        });
+      }
+
+      const user = await this.userRepository.findOne({ where: { sso_id } });
+      if (!user) {
+        return new ErrorResponse({
+          statusCode: HttpStatus.NOT_FOUND,
+          errorMessage: `User with ID '${sso_id}' not found`,
+        });
+      }
+
+      const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
+      console.log('userInfo', userInfo);
+      const final = {
+        ...user,
+        ...userInfo,
+      };
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'User retrieved successfully.',
+        data: final,
+      });
+    } catch (error) {
       return new ErrorResponse({
-        statusCode: HttpStatus.UNAUTHORIZED,
-        errorMessage: 'Invalid or missing Keycloak ID',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: error.message,
       });
     }
-
-    const user = await this.userRepository.findOne({ where: { sso_id } });
-    if (!user) {
-      return new ErrorResponse({
-        statusCode: HttpStatus.NOT_FOUND,
-        errorMessage: `User with ID '${sso_id}' not found`,
-      });
-    }
-
-    const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
-    console.log('userInfo', userInfo);
-    const final = {
-      ...user,
-      ...userInfo,
-    };
-    return new SuccessResponse({
-      statusCode: HttpStatus.OK,
-      message: 'User retrieved successfully.',
-      data: final,
-    });
   }
 
   async findOneUserInfo(
@@ -222,15 +223,11 @@ export class UserService {
     const userInfo = await this.userInfoRepository.findOne({
       where: { user_id },
     });
-    console.log('updateUserInfoDto?.aadhaar', updateUserInfoDto?.aadhaar);
 
     if (updateUserInfoDto?.aadhaar) {
-      console.log('------------------>', updateUserInfoDto?.aadhaar);
-
       const encrypted = this.encryptionService.encrypt(
         updateUserInfoDto?.aadhaar,
       );
-      console.log('enc data-->', encrypted);
 
       updateUserInfoDto.aadhaar = encrypted;
     }
@@ -332,58 +329,50 @@ export class UserService {
     // Step 3: Get Keycloak admin token
     const token = await this.keycloakService.getAdminKeycloakToken();
 
-    if (token?.access_token) {
-      try {
-        // Step 4: Register user in Keycloak
-        const registerUserRes = await this.keycloakService.registerUser(
-          data_to_create_user,
-          token.access_token,
-        );
+    try {
+      // Step 4: Register user in Keycloak
+      const registerUserRes = await this.keycloakService.registerUser(
+        data_to_create_user,
+        token.access_token,
+      );
 
-        if (registerUserRes.error) {
-          if (
-            registerUserRes.error.message ==
-            'Request failed with status code 409'
-          ) {
-            console.log('User already exists!');
-          } else {
-            console.log(registerUserRes.error.message);
-          }
-        } else if (registerUserRes.headers.location) {
-          const split = registerUserRes.headers.location.split('/');
-          const keycloak_id = split[split.length - 1];
-          body.keycloak_id = keycloak_id;
-          body.username = data_to_create_user.username;
-
-          // Step 5: Try to create user in PostgreSQL
-          const result = await this.createKeycloakData(body);
-
-          // If successful, return success response
-          const userResponse = {
-            user: result,
-            keycloak_id: keycloak_id,
-            username: data_to_create_user.username,
-          };
-          return userResponse;
+      if (registerUserRes.error) {
+        if (
+          registerUserRes.error.message == 'Request failed with status code 409'
+        ) {
+          console.log('User already exists!');
         } else {
-          console.log('Unable to create user in Keycloak');
+          console.log(registerUserRes.error.message);
         }
-      } catch (error) {
-        console.error('Error during user registration:', error);
+      } else if (registerUserRes.headers.location) {
+        const split = registerUserRes.headers.location.split('/');
+        const keycloak_id = split[split.length - 1];
+        body.keycloak_id = keycloak_id;
+        body.username = data_to_create_user.username;
 
-        // Step 6: Rollback - delete user from Keycloak if PostgreSQL insertion fails
-        if (body?.keycloak_id) {
-          await this.keycloakService.deleteUser(body.keycloak_id);
-          console.log(
-            'Keycloak user deleted due to failure in PostgreSQL creation',
-          );
-        }
+        // Step 5: Try to create user in PostgreSQL
+        const result = await this.createKeycloakData(body);
+
+        // If successful, return success response
+        const userResponse = {
+          user: result,
+          keycloak_id: keycloak_id,
+          username: data_to_create_user.username,
+        };
+        return userResponse;
+      } else {
+        console.log('Unable to create user in Keycloak');
+      }
+    } catch (error) {
+      console.error('Error during user registration:', error);
+
+      // Step 6: Rollback - delete user from Keycloak if PostgreSQL insertion fails
+      if (body?.keycloak_id) {
+        await this.keycloakService.deleteUser(body.keycloak_id);
         console.log(
-          'Error during user registration. Keycloak user has been rolled back.',
+          'Keycloak user deleted due to failure in PostgreSQL creation',
         );
       }
-    } else {
-      console.log('Unable to get Keycloak token');
     }
   }
 }

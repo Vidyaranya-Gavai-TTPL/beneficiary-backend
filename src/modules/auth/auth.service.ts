@@ -18,9 +18,9 @@ export class AuthService {
   );
 
   constructor(
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
     private readonly keycloakService: KeycloakService,
-    private userService: UserService,
+    private readonly userService: UserService,
     private readonly loggerService: LoggerService,
   ) {}
 
