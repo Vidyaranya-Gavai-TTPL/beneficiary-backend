@@ -111,7 +111,7 @@ export class UserController {
   })
   async createUserApplication(
     @Body() createUserApplicationDto: CreateUserApplicationDto,
-  ): Promise<UserApplication> {
+  ) {
     return this.userService.createUserApplication(createUserApplicationDto);
   }
 
@@ -126,7 +126,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User application not found' })
   async findOneUserApplication(
     @Param('internal_application_id') internal_application_id: string,
-  ): Promise<UserApplication> {
+  ) {
     return this.userService.findOneUserApplication(internal_application_id);
   }
 
@@ -140,7 +140,7 @@ export class UserController {
   })
   async findAllApplicationsByUserId(
     @Body() requestBody: { filters: any; search: string },
-  ): Promise<UserApplication[]> {
+  ) {
     return this.userService.findAllApplicationsByUserId(requestBody);
   }
 }

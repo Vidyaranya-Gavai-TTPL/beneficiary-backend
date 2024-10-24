@@ -16,6 +16,7 @@ import { CreateUserApplicationDto } from './dto/create-user-application-dto';
 import { KeycloakService } from '@services/keycloak/keycloak.service';
 import { SuccessResponse } from 'src/common/responses/success-response';
 import { ErrorResponse } from 'src/common/responses/error-response';
+import { application } from 'express';
 @Injectable()
 export class UserService {
   constructor(
@@ -95,7 +96,6 @@ export class UserService {
       }
 
       const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
-      console.log('userInfo', userInfo);
       const final = {
         ...user,
         ...userInfo,
@@ -243,16 +243,23 @@ export class UserService {
   }
   async createUserApplication(
     createUserApplicationDto: CreateUserApplicationDto,
-  ): Promise<UserApplication> {
+  ) {
+    const encrypted = this.encryptionService.encrypt(
+      createUserApplicationDto.application_data,
+    );
+    createUserApplicationDto.application_data = { encrypted };
     const userApplication = this.userApplicationRepository.create(
       createUserApplicationDto,
     );
-    return this.userApplicationRepository.save(userApplication);
+    const response = await this.userApplicationRepository.save(userApplication);
+    return new SuccessResponse({
+      statusCode: HttpStatus.OK,
+      message: 'User application created successfully.',
+      data: response,
+    });
   }
 
-  async findOneUserApplication(
-    internal_application_id: string,
-  ): Promise<UserApplication> {
+  async findOneUserApplication(internal_application_id: string) {
     const userApplication = await this.userApplicationRepository.findOne({
       where: { internal_application_id },
     });
@@ -261,38 +268,82 @@ export class UserService {
         `Application with ID '${internal_application_id}' not found`,
       );
     }
-    return userApplication;
+    const decrypted = this.encryptionService.decrypt(
+      userApplication?.application_data?.encrypted,
+    );
+    userApplication.application_data = decrypted;
+    return new SuccessResponse({
+      statusCode: HttpStatus.OK,
+      message: 'User application retrieved successfully.',
+      data: userApplication,
+    });
   }
 
   async findAllApplicationsByUserId(requestBody: {
     filters?: any;
     search?: string;
-  }): Promise<UserApplication[]> {
+    page?: number;
+    limit?: number;
+  }) {
     let whereClause = {};
-    const filterKeys = this.userApplicationRepository.metadata.columns.map(
-      (column) => column.propertyName,
-    );
-    const { filters = {}, search } = requestBody; // Default filters to an empty object
+    try {
+      const filterKeys = this.userApplicationRepository.metadata.columns.map(
+        (column) => column.propertyName,
+      );
+      const { filters = {}, search, page = 1, limit = 10 } = requestBody;
 
-    // Handle filters if provided
-    if (filters && Object.keys(filters).length > 0) {
-      for (const [key, value] of Object.entries(filters)) {
-        // Check for valid filter keys and ignore null or undefined values
-        if (filterKeys.includes(key) && value !== null && value !== undefined) {
-          whereClause[key] = value;
+      // Handle filters
+      if (filters && Object.keys(filters).length > 0) {
+        for (const [key, value] of Object.entries(filters)) {
+          if (
+            filterKeys.includes(key) &&
+            value !== null &&
+            value !== undefined
+          ) {
+            whereClause[key] = value;
+          }
         }
       }
-    }
 
-    // Handle search for `application_name` using ILIKE
-    if (search && search.trim().length > 0) {
-      whereClause['application_name'] = ILike(`%${search}%`);
-    }
+      // Handle search for `application_name`
+      if (search && search.trim().length > 0) {
+        whereClause['application_name'] = ILike(`%${search}%`);
+      }
 
-    // Find and return the applications based on the where clause
-    return await this.userApplicationRepository.find({
-      where: whereClause,
-    });
+      // Fetch data with pagination
+      const [userApplication, total] =
+        await this.userApplicationRepository.findAndCount({
+          where: whereClause,
+          skip: (page - 1) * limit,
+          take: limit,
+        });
+
+      // Decrypt data in parallel
+      if (userApplication.length > 0) {
+        await Promise.all(
+          userApplication.map(async (item) => {
+            try {
+              const decrypted = this.encryptionService.decrypt(
+                item?.application_data?.encrypted,
+              );
+              item.application_data = decrypted;
+            } catch (decryptionError) {
+              console.error('Error decrypting data:', decryptionError);
+              // Handle or log decryption error without halting the process
+            }
+          }),
+        );
+      }
+
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'User applications list retrieved successfully.',
+        data: { applications: userApplication, total },
+      });
+    } catch (error) {
+      console.error('Error fetching user applications:', error);
+      throw new Error('Failed to fetch user applications');
+    }
   }
 
   public async registerUserWithUsername(body) {
