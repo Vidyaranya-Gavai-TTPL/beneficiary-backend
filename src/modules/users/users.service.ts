@@ -328,7 +328,6 @@ export class UserService {
               item.application_data = decrypted;
             } catch (decryptionError) {
               console.error('Error decrypting data:', decryptionError);
-              // Handle or log decryption error without halting the process
             }
           }),
         );
@@ -340,8 +339,10 @@ export class UserService {
         data: { applications: userApplication, total },
       });
     } catch (error) {
-      console.error('Error fetching user applications:', error);
-      throw new Error('Failed to fetch user applications');
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: 'Failed to fetch user applications',
+      });
     }
   }
 
