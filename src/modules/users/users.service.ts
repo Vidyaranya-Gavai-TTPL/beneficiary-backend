@@ -243,19 +243,28 @@ export class UserService {
   async createUserApplication(
     createUserApplicationDto: CreateUserApplicationDto,
   ) {
-    const encrypted = this.encryptionService.encrypt(
-      createUserApplicationDto.application_data,
-    );
-    createUserApplicationDto.application_data = { encrypted };
-    const userApplication = this.userApplicationRepository.create(
-      createUserApplicationDto,
-    );
-    const response = await this.userApplicationRepository.save(userApplication);
-    return new SuccessResponse({
-      statusCode: HttpStatus.OK,
-      message: 'User application created successfully.',
-      data: response,
-    });
+    try {
+      const encrypted = this.encryptionService.encrypt(
+        createUserApplicationDto.application_data,
+      );
+      createUserApplicationDto.application_data = { encrypted };
+      const userApplication = this.userApplicationRepository.create(
+        createUserApplicationDto,
+      );
+      const response = await this.userApplicationRepository.save(
+        userApplication,
+      );
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'User application created successfully.',
+        data: response,
+      });
+    } catch (error) {
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: 'Failed to create user application',
+      });
+    }
   }
 
   async findOneUserApplication(internal_application_id: string) {
@@ -306,7 +315,8 @@ export class UserService {
 
       // Handle search for `application_name`
       if (search && search.trim().length > 0) {
-        whereClause['application_name'] = ILike(`%${search}%`);
+        const sanitizedSearch = search.replace(/[%_]/g, '\\$&');
+        whereClause['application_name'] = ILike(`%${sanitizedSearch}%`);
       }
 
       // Fetch data with pagination
