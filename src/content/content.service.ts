@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { LoggerService } from 'src/logger/logger.service';
 import { HasuraService } from 'src/services/hasura/hasura.service';
 import { ProxyService } from 'src/services/proxy/proxy.service';
@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ResponseCache } from 'src/entity/response.entity';
 import { EncryptionService } from 'src/common/helper/encryptionService';
+import { SuccessResponse } from 'src/common/responses/success-response';
+import { ErrorResponse } from 'src/common/responses/error-response';
 const crypto = require('crypto');
 
 @Injectable()
@@ -146,10 +148,28 @@ export class ContentService {
         });
         console.log('uniqueObjects length', uniqueObjects.length);
         //return uniqueObjects
-        return this.hasuraService.insertCacheData(uniqueObjects);
+        const insertionResponse = await this.hasuraService.insertCacheData(
+          uniqueObjects,
+        );
+
+        // Collect all returned items from the response (flatten the result)
+        const returnedItems = insertionResponse.flatMap(
+          (res) => res.data.insert_ubi_network_cache.returning,
+        );
+
+        // Create the success response in the desired format
+        return new SuccessResponse({
+          statusCode: HttpStatus.OK,
+          message: 'Data inserted successfully',
+          data: returnedItems, // Attach the data in the "data" field
+        });
       }
     } catch (error) {
-      console.log('error', error);
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: error.message,
+        // Attach the data in the "data" field
+      });
     }
   }
 
