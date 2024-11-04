@@ -26,7 +26,7 @@ export class AuthService {
 
   public async login(req, response) {
     const data = {
-      username: req.body.phone_number,
+      username: req.body.username,
       password: req.body.password,
       type: 'login',
     };
