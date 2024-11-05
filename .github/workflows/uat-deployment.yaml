@@ -1,8 +1,6 @@
 name: Deploy to Tekdi-PIRAMAL-OU
 on:
-  push:
-    branches:
-      - uat
+  workflow_dispatch:
 jobs:
    Deploy_on_UAT_UBA:
     runs-on: ubuntu-latest
