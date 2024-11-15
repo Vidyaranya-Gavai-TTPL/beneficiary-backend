@@ -113,6 +113,12 @@ export class AuthService {
           temporary: false,
         },
       ],
+      attributes: {
+        // Custom user attributes
+        phoneNumber: '+91' + body?.phone_number,
+        firstName: body?.first_name,
+        lastName: body?.last_name,
+      },
     };
   }
 
