@@ -18,6 +18,7 @@ import { SuccessResponse } from 'src/common/responses/success-response';
 import { ErrorResponse } from 'src/common/responses/error-response';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DocumentListProvider } from 'src/common/helper/DocumentListProvider';
 @Injectable()
 export class UserService {
   constructor(
@@ -97,9 +98,12 @@ export class UserService {
       }
 
       const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
+      const userDoc = await this.findUserDocs(user.user_id, decryptData);
+
       const final = {
         ...user,
         ...userInfo,
+        docs: userDoc || [],
       };
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
@@ -128,6 +132,22 @@ export class UserService {
     }
 
     return userInfo;
+  }
+  async findUserDocs(user_id: string, decryptData: boolean) {
+    const userDocs = await this.userDocsRepository.find({ where: { user_id } });
+
+    // Retrieve the document subtypes set from the DocumentListProvider
+    const documentTypes = DocumentListProvider.getDocumentSubTypesSet();
+
+    if (decryptData) {
+      return userDocs.map((doc) => ({
+        ...doc,
+        doc_data: this.encryptionService.decrypt(doc.doc_data),
+        is_uploaded: documentTypes.has(doc.doc_subtype),
+      }));
+    }
+
+    return userDocs;
   }
 
   /*async remove(user_id: string): Promise<void> {
