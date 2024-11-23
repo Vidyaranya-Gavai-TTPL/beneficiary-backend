@@ -4,8 +4,8 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { Response } from 'express';
 import { SuccessResponse } from '../responses/success-response';
 import { ErrorResponse } from '../responses/error-response';
@@ -18,30 +18,22 @@ export class ResponseInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data) => {
         if (data instanceof ErrorResponse) {
-          const errorResponse = {
+          response.status(data.statusCode).json({
             statusCode: data.statusCode,
             error: data.errorMessage,
-          };
-          response.status(data.statusCode).json(errorResponse);
-          return of(null);
+          });
         } else if (data instanceof SuccessResponse) {
-          const successResponse = {
+          response.status(data.statusCode).json({
             statusCode: data.statusCode,
             message: data.message,
             data: data.data,
-          };
-          response.status(data.statusCode).json(successResponse);
-          return of(null);
+          });
+        } else {
+          return data; // For other response types, pass through without modification
         }
-        return data; // Return any unknown type as is
       }),
       catchError((err) => {
-        // Handle errors thrown in the controller
-        response.status(err.status || 500).json({
-          statusCode: err.status || 500,
-          error: err.message || 'Internal server error',
-        });
-        return of(null); // Prevent further processing
+        throw err; // Re-throw the error to ensure it doesn't get swallowed
       }),
     );
   }
