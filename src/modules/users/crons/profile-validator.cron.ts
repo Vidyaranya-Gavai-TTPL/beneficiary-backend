@@ -10,7 +10,6 @@ import { UserProfileValidator } from 'src/common/profile-validator/profile-valid
 
 @Injectable()
 export default class ProfileValidatorCron {
-  private readonly userProfileValidator: UserProfileValidator;
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(UserDoc)
@@ -18,9 +17,8 @@ export default class ProfileValidatorCron {
     @InjectRepository(UserInfo)
     private readonly userInfoRepository: Repository<UserInfo>,
     private readonly encryptionService: EncryptionService,
-  ) {
-    this.userProfileValidator = new UserProfileValidator();
-  }
+    private readonly userProfileValidator: UserProfileValidator,
+  ) {}
 
   // returns docType and vcType of a VC based on its properties from database
   private getVcMetaData(vc: any) {
@@ -107,7 +105,7 @@ export default class ProfileValidatorCron {
   }
 
   // CRON job to validate 10 user's data at a time against their VCs
-  @Cron('*/10 * * * * *')
+  @Cron('*/5 * * * *')
   async validateProfile() {
     // Take users from User-Info Table where fields_verified_at is NULL
     try {

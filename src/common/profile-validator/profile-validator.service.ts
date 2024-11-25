@@ -85,13 +85,17 @@ export class UserProfileValidator {
       '../../../src/common/profile-validator/nameFieldsPosition.json',
     );
 
-    const fieldValues: Record<string, Record<string, string[]>> = JSON.parse(
-      await readFile(fieldValuesPath, 'utf-8'),
-    );
-    const nameFieldsPosition: Record<
-      string,
-      Record<string, number>
-    > = JSON.parse(await readFile(nameFieldsPositionPath, 'utf-8'));
+    let fieldValues: Record<string, Record<string, string[]>>;
+    let nameFieldsPosition: Record<string, Record<string, number>>;
+    try {
+      fieldValues = JSON.parse(await readFile(fieldValuesPath, 'utf-8'));
+      nameFieldsPosition = JSON.parse(
+        await readFile(nameFieldsPositionPath, 'utf-8'),
+      );
+    } catch (error) {
+      console.error('Error reading files:', error);
+      throw error;
+    }
 
     return { fieldValues, nameFieldsPosition };
   }
@@ -185,7 +189,7 @@ export class UserProfileValidator {
       }
 
       // Check if values from VC and profile match or not and return result
-      return this.checkValueForAttributes(
+      const isMatch = this.checkValueForAttributes(
         profileAttribute,
         userProfile,
         attributeValue,
@@ -193,6 +197,9 @@ export class UserProfileValidator {
         vc,
         nameFieldsPosition,
       );
+      if (isMatch) {
+        return true;
+      }
     }
 
     return false;
