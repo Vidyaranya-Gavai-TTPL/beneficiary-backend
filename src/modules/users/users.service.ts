@@ -114,11 +114,11 @@ export class UserService {
     console.log('user_id-->>', user_id);
     try {
       const userInfo = await this.findOneUserInfo(user_id, decryptData);
-      // const userDoc = await this.findUserDocs(user_id, decryptData);
+      const userDoc = await this.findUserDocs(user_id, decryptData);
 
       const final = {
         ...userInfo,
-        // docs: userDoc || [],
+        docs: userDoc || [],
       };
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
