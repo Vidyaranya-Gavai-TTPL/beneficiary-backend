@@ -12,28 +12,28 @@ export class UserInfo {
   user_id: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  father_name: string;
+  fatherName: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  samagra_id: string;
+  samagraId: string;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
-  current_school_name: string;
+  currentSchoolName: string;
 
   @Column({ type: 'text', nullable: true })
-  current_school_address: string;
+  currentSchoolAddress: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  current_school_district: string;
+  currentSchoolDistrict: string;
 
   @Column({ type: 'int', nullable: true })
-  current_class: number;
+  class: number;
 
   @Column({ type: 'varchar', nullable: true })
-  previous_year_marks: string;
+  previousYearMarks: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  student_type: string;
+  studentType: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   aadhaar: string;
@@ -42,7 +42,7 @@ export class UserInfo {
   caste: string;
 
   @Column({ type: 'numeric', precision: 10, scale: 2, nullable: true })
-  income: number;
+  annualIncome: number;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
   gender: string;
@@ -51,10 +51,28 @@ export class UserInfo {
   age: number;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  disability: string;
+  disabilityStatus: string;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
   status: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  motherName: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  dob: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  bankAccountHolderName: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  bankName: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  bankAccountNumber: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  bankIfscCode: string;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

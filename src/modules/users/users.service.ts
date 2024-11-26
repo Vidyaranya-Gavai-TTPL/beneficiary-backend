@@ -54,56 +54,71 @@ export class UserService {
     }
   }
 
-  async update(userId: string, updateUserDto: UpdateUserDto) {
+  async update(userId: string, updateUserDto: any) {
+    // Destructure userInfo from the payload
+    const { userInfo, ...userData } = updateUserDto;
+
+    // Check for existing user in the user table
     const existingUser = await this.userRepository.findOne({
       where: { user_id: userId },
     });
+
     if (!existingUser) {
       return new ErrorResponse({
-        statusCode: HttpStatus.NOT_FOUND, // Created
+        statusCode: HttpStatus.NOT_FOUND,
         errorMessage: `User with ID '${userId}' not found`,
       });
     }
-    Object.assign(existingUser, updateUserDto);
+
+    // Update the user information in userRepository
+    Object.assign(existingUser, userData);
+
     try {
       const updatedUser = await this.userRepository.save(existingUser);
+
+      // Check for existing user info in userInfoRepository
+      const existingUserInfo = await this.userInfoRepository.findOne({
+        where: { user_id: userId },
+      });
+
+      if (existingUserInfo) {
+        // Update user info if it exists
+        Object.assign(existingUserInfo, userInfo);
+        await this.userInfoRepository.save(existingUserInfo);
+      } else if (userInfo) {
+        // Create a new user info if it doesn't exist and userInfo is provided
+        const newUserInfo = this.userInfoRepository.create({
+          user_id: userId,
+          ...userInfo,
+        });
+        await this.userInfoRepository.save(newUserInfo);
+      }
+
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
-        message: 'User updated successfully',
-        data: updatedUser,
+        message: 'User and associated info updated successfully',
+        data: {
+          ...updatedUser,
+          userInfo: userInfo || existingUserInfo, // Combine updated user with userInfo
+        },
       });
     } catch (error) {
       return new ErrorResponse({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        errorMessage: error,
+        errorMessage: error.message || 'An error occurred while updating user',
       });
     }
   }
-  async findOne(req: any, decryptData?: boolean) {
+
+  async findOne(user_id: any, decryptData?: boolean) {
+    console.log('user_id-->>', user_id);
     try {
-      const sso_id = req?.user?.keycloak_id;
-      if (!sso_id) {
-        return new ErrorResponse({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          errorMessage: 'Invalid or missing Keycloak ID',
-        });
-      }
-
-      const user = await this.userRepository.findOne({ where: { sso_id } });
-      if (!user) {
-        return new ErrorResponse({
-          statusCode: HttpStatus.NOT_FOUND,
-          errorMessage: `User with ID '${sso_id}' not found`,
-        });
-      }
-
-      const userInfo = await this.findOneUserInfo(user.user_id, decryptData);
-      const userDoc = await this.findUserDocs(user.user_id, decryptData);
+      const userInfo = await this.findOneUserInfo(user_id, decryptData);
+      // const userDoc = await this.findUserDocs(user_id, decryptData);
 
       const final = {
-        ...user,
         ...userInfo,
-        docs: userDoc || [],
+        // docs: userDoc || [],
       };
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
@@ -133,6 +148,7 @@ export class UserService {
 
     return userInfo;
   }
+
   async findUserDocs(user_id: string, decryptData: boolean) {
     const userDocs = await this.userDocsRepository.find({ where: { user_id } });
 
@@ -161,22 +177,22 @@ export class UserService {
   // Method to check if mobile number exists
   async findByMobile(mobile: string): Promise<User | undefined> {
     return await this.userRepository.findOne({
-      where: { phone_number: mobile },
+      where: { phoneNumber: mobile },
     });
   }
 
   async findByUsername(username: string): Promise<User | undefined> {
     return await this.userRepository.findOne({
-      where: { phone_number: username },
+      where: { phoneNumber: username },
     });
   }
 
   async createKeycloakData(body: any): Promise<User> {
     const user = this.userRepository.create({
-      first_name: body.first_name,
-      last_name: body.last_name,
+      firstName: body.firstName,
+      lastName: body.lastName,
       email: body.email || '',
-      phone_number: body.phone_number || '',
+      phoneNumber: body.phoneNumber || '',
       sso_provider: 'keycloak',
       sso_id: body.keycloak_id,
       created_at: new Date(),
@@ -309,7 +325,7 @@ export class UserService {
     return savedDocs;
   }
 
-  async createUserDocs(
+  async createUserDocsNew(
     createUserDocsDto: CreateUserDocDTO[],
   ): Promise<UserDoc[]> {
     const baseFolder = path.join(__dirname, 'userData'); // Base folder for storing user files
@@ -443,6 +459,7 @@ export class UserService {
       updateUserInfoDto.aadhaar = encrypted;
     }
     Object.assign(userInfo, updateUserInfoDto);
+    console.log('userInfo--->>', userInfo);
     return this.userInfoRepository.save(userInfo);
   }
   // Create a new consent record
@@ -570,10 +587,10 @@ export class UserService {
 
   public async registerUserWithUsername(body) {
     // Replace spaces with underscores in first name and last name
-    const firstPartOfFirstName = body?.first_name
+    const firstPartOfFirstName = body?.firstName
       ?.split(' ')[0]
       ?.replace(/\s+/g, '_');
-    const lastNameWithUnderscore = body?.last_name?.replace(/\s+/g, '_');
+    const lastNameWithUnderscore = body?.lastName?.replace(/\s+/g, '_');
 
     // Extract the last 2 digits of Aadhar
     const lastTwoDigits = body?.aadhaar?.slice(-2);
@@ -587,13 +604,13 @@ export class UserService {
 
     let data_to_create_user = {
       enabled: 'true',
-      firstName: body?.first_name,
-      lastName: body?.last_name,
-      username: username,
+      firstName: body?.firstName,
+      lastName: body?.lastName,
+      username: 'admin',
       credentials: [
         {
           type: 'password',
-          value: body?.password || 'Password@123',
+          value: body?.password || 'admin#432#',
           temporary: false,
         },
       ],
@@ -601,6 +618,7 @@ export class UserService {
 
     // Step 3: Get Keycloak admin token
     const token = await this.keycloakService.getAdminKeycloakToken();
+    console.log('token-->');
 
     try {
       // Step 4: Register user in Keycloak

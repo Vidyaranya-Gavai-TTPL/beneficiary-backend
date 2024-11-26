@@ -50,7 +50,7 @@ export class AuthService {
   public async register(body) {
     try {
       // Step 1: Check if mobile number exists in the database
-      await this.checkMobileExistence(body?.phone_number);
+      await this.checkMobileExistence(body?.phoneNumber);
 
       // Step 2: Prepare user data for Keycloak registration
       const dataToCreateUser = this.prepareUserData(body);
@@ -103,9 +103,9 @@ export class AuthService {
   private prepareUserData(body) {
     return {
       enabled: 'true',
-      firstName: body?.first_name,
-      lastName: body?.last_name,
-      username: body.phone_number,
+      firstName: body?.firstName,
+      lastName: body?.lastName,
+      username: body?.phoneNumber,
       credentials: [
         // {
         //   type: 'password',
@@ -115,9 +115,9 @@ export class AuthService {
       ],
       attributes: {
         // Custom user attributes
-        phoneNumber: '+91' + body?.phone_number,
-        firstName: body?.first_name,
-        lastName: body?.last_name,
+        phoneNumber: '+91' + body?.phoneNumber,
+        firstName: body?.firstName,
+        lastName: body?.lastName,
       },
     };
   }

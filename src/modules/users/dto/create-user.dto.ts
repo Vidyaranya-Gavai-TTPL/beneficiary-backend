@@ -13,7 +13,7 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @Length(1, 50)
-  first_name: string;
+  firstName: string;
 
   @ApiProperty({
     example: 'Doe',
@@ -23,13 +23,13 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @Length(0, 50)
-  middle_name?: string;
+  middleName?: string;
 
   @ApiProperty({ example: 'Doe', description: 'The last name of the user' })
   @IsString()
   @IsNotEmpty()
   @Length(1, 50)
-  last_name: string;
+  lastName: string;
 
   @ApiProperty({
     example: 'john.doe@example.com',
@@ -65,7 +65,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @Length(0, 100)
-  phone_number?: string;
+  phoneNumber?: string;
 
   @ApiProperty({
     example: '1990-01-01',
@@ -74,7 +74,7 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsDate()
-  date_of_birth?: Date;
+  dob?: Date;
 
   @ApiProperty({
     example: 'path/to/image.jpg',
