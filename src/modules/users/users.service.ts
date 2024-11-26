@@ -111,7 +111,6 @@ export class UserService {
   }
 
   async findOne(user_id: any, decryptData?: boolean) {
-    console.log('user_id-->>', user_id);
     try {
       const userInfo = await this.findOneUserInfo(user_id, decryptData);
       const userDoc = await this.findUserDocs(user_id, decryptData);
