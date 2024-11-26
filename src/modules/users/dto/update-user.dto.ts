@@ -10,7 +10,7 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @Length(1, 50)
-  first_name?: string;
+  firstName?: string;
 
   @ApiProperty({
     example: 'Doe',
@@ -20,7 +20,7 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @Length(1, 50)
-  last_name?: string;
+  lastName?: string;
 
   @ApiProperty({
     example: 'john.doe@example.com',
@@ -59,7 +59,7 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @Length(0, 100)
-  phone_number?: string;
+  phoneNumber?: string;
 
   @ApiProperty({
     example: '1990-01-01',
@@ -67,7 +67,7 @@ export class UpdateUserDto {
     required: false,
   })
   @IsOptional()
-  date_of_birth?: Date;
+  dob?: Date;
 
   @ApiProperty({
     example: 'path/to/image.jpg',

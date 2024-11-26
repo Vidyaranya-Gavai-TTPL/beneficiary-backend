@@ -2,57 +2,47 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsUUID, IsString, IsNumber } from 'class-validator';
 
 export class CreateUserInfoDto {
-  //   @IsUUID()
+  // @IsUUID()
   // @ApiProperty()
   user_id: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  first_name?: string;
+  fatherName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  samagraId?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  last_name?: string;
+  currentSchoolName?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  father_name?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  samagra_id?: string;
+  currentSchoolAddress?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  current_school_name?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  current_school_address?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  current_school_district?: string;
+  currentSchoolDistrict?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsNumber()
-  current_class?: number;
+  class?: number;
 
   @ApiProperty()
   @IsOptional()
-  previous_year_marks?: string;
+  previousYearMarks?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  student_type?: string;
+  studentType?: string;
 
   @ApiProperty()
   @IsOptional()
@@ -66,7 +56,7 @@ export class CreateUserInfoDto {
 
   @ApiProperty()
   @IsOptional()
-  income?: number;
+  annualIncome?: number;
 
   @ApiProperty()
   @IsOptional()
@@ -81,10 +71,35 @@ export class CreateUserInfoDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  disability?: string;
+  disabilityStatus?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  bankAccountHolderName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  bankName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  bankAccountNumber?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  bankIfscCode?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  dob?: string;
 }

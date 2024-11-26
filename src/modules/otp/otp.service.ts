@@ -39,8 +39,8 @@ export class OtpService {
   public async sendOTP(number: any) {
     try {
       // Validate Phone Number
-      const { phone_number } = number;
-      if (!this.validateIndianPhoneNumber(phone_number)) {
+      const { phoneNumber } = number;
+      if (!this.validateIndianPhoneNumber(phoneNumber)) {
         return new ErrorResponse({
           statusCode: HttpStatus.BAD_REQUEST,
           errorMessage: 'Invalid Phone Number',
@@ -52,7 +52,7 @@ export class OtpService {
       const expiry = Date.now() + 1000 * 60 * 5;
 
       // Generate HASH
-      const data = `${phone_number}.${otp}`;
+      const data = `${phoneNumber}.${otp}`;
       const hash = crypto.createHash('sha256').update(data).digest('hex');
 
       // console.log(`Expiry: ${expiry}`);
@@ -73,7 +73,7 @@ export class OtpService {
       const messageType = this.configService.get<string>('OTP_MESSAGE_TYPE');
       const smsRequestData = JSON.stringify({
         customerId: customerId,
-        destinationAddress: phone_number.split('-')[1],
+        destinationAddress: phoneNumber.split('-')[1],
         message: `Dear Citizen, your OTP for login is ${otp}. Use it within 5 minutes. Do not share this code. Regards PSMRIAM.`,
         sourceAddress: sourceAddress,
         messageType: messageType,
@@ -126,13 +126,13 @@ export class OtpService {
 
   public async verifyOTP(otpBody: any) {
     try {
-      const { phone_number, otp, token } = otpBody;
+      const { phoneNumber, otp, token } = otpBody;
 
       // Decode token
       const tokenContent = JSON.parse(this.encryptionService.decrypt(token));
 
       // Create a hash
-      const data = `${phone_number}.${otp}`;
+      const data = `${phoneNumber}.${otp}`;
       const newhash = crypto.createHash('sha256').update(data).digest('hex');
       // console.log('NEW HASH: ', newhash);
 

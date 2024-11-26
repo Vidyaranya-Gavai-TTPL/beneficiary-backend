@@ -50,7 +50,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async update(
     @Param('userId', new ParseUUIDPipe()) userId: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: any,
   ) {
     return this.userService.update(userId, updateUserDto);
   }
@@ -65,10 +65,10 @@ export class UserController {
     type: Boolean,
   })
   async findOne(
-    @Req() req: Request,
+    @Query('userId') userId: any,
     @Query('decryptData') decryptData?: boolean,
   ) {
-    return await this.userService.findOne(req, decryptData);
+    return await this.userService.findOne(userId, decryptData);
   }
 
   @Post('/user_docs')
@@ -86,7 +86,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'User docs saved successfully' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async createUserDocs(@Body() createUserDocDto: CreateUserDocDTO[]) {
-    return this.userService.createUserDocs(createUserDocDto);
+    return this.userService.createUserDocsNew(createUserDocDto);
   }
 
   @Post('/user_info')
