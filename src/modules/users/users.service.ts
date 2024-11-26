@@ -610,7 +610,7 @@ export class UserService {
       credentials: [
         {
           type: 'password',
-          value: body?.password || 'admin#432#',
+          value: body?.password || 'Password@123',
           temporary: false,
         },
       ],
