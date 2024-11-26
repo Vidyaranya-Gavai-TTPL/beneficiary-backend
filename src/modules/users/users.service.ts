@@ -586,6 +586,8 @@ export class UserService {
   }
 
   public async registerUserWithUsername(body) {
+    const keycloak_admin_password = process.env.KEYCLOAK_ADMIN_PASSWORD;
+    const keyclaok_admin_username = process.env.KEYCLOAK_ADMIN_USERNAME;
     // Replace spaces with underscores in first name and last name
     const firstPartOfFirstName = body?.firstName
       ?.split(' ')[0]
@@ -606,11 +608,11 @@ export class UserService {
       enabled: 'true',
       firstName: body?.firstName,
       lastName: body?.lastName,
-      username: 'admin',
+      username: keyclaok_admin_username,
       credentials: [
         {
           type: 'password',
-          value: body?.password || 'Password@123',
+          value: body?.password || keycloak_admin_password,
           temporary: false,
         },
       ],
