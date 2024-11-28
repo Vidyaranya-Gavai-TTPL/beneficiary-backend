@@ -1,7 +1,7 @@
 import { User } from '@entities/user.entity';
 import { UserDoc } from '@entities/user_docs.entity';
 import { UserInfo } from '@entities/user_info.entity';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { readFile } from 'fs/promises';
 import * as path from 'path';
@@ -35,7 +35,7 @@ export default class ProfilePopulatorCron {
 
     for (let i = 0; i < roman.length; i++) {
       const current = romanMap[roman[i]];
-      const next = romanMap[roman[i + 1]];
+      const next = romanMap[roman[i + 1]] || 0;
 
       if (current < next) {
         // Subtractive case (e.g., IV -> 4)
@@ -56,9 +56,8 @@ export default class ProfilePopulatorCron {
     // Build VC array
     for (const doc of userDocs) {
       const docType = doc.doc_subtype;
-      const content = await JSON.parse(
-        this.encryptionService.decrypt(doc.doc_data),
-      );
+      const decryptedData = await this.encryptionService.decrypt(doc.doc_data);
+      const content = JSON.parse(decryptedData);
 
       vcs.push({ docType, content });
     }
@@ -72,18 +71,18 @@ export default class ProfilePopulatorCron {
       .createQueryBuilder('user')
       .orderBy(
         `CASE
-                  WHEN user.fields_verified IS NULL THEN 0
-                  WHEN user.fields_verified = false AND user.fields_verified_at IS NOT NULL THEN 1
+                  WHEN user.fieldsVerified IS NULL THEN 0
+                  WHEN user.fieldsVerified = false AND user.fieldsVerifiedAt IS NOT NULL THEN 1
                   ELSE 2
               END`,
         'ASC',
       )
       .addOrderBy(
         `CASE
-                  WHEN user.fields_verified_at IS NULL THEN "user"."updated_at"
-                  ELSE "user"."fields_verified_at"
+                  WHEN user.fieldsVerifiedAt IS NULL THEN "user"."updated_at"
+                  ELSE "user"."fieldsVerifiedAt"
               END`,
-        'DESC',
+        'ASC',
       )
       .take(10)
       .getMany();
@@ -112,7 +111,11 @@ export default class ProfilePopulatorCron {
   private handleNameFields(vc: any, vcPaths: any, field: any) {
     const fullname = this.getValue(vc, vcPaths['name']);
     if (!fullname) return null;
-    const [firstName, middleName, lastName] = fullname.split(' ');
+    const nameParts = fullname.split(' ');
+    const firstName = nameParts[0] || null;
+    const middleName = nameParts.length === 3 ? nameParts[1] : null;
+    const lastName =
+      nameParts.length >= 2 ? nameParts[nameParts.length - 1] : null;
 
     switch (field) {
       case 'firstName':
@@ -148,6 +151,7 @@ export default class ProfilePopulatorCron {
     let value = this.getValue(vc, pathValue);
     if (!value) return null;
     value = this.romanToInt(value);
+    if (isNaN(value)) return null;
     return value;
   }
 
@@ -229,38 +233,51 @@ export default class ProfilePopulatorCron {
 
   // Handle rows from 'user_info' table in database
   private async handleUserInfo(user: any, userInfo: any) {
-    const userRows = await this.userInfoRepository.find({
-      where: {
-        user_id: user.user_id,
-      },
-    });
-
-    if (userRows.length === 0) {
-      const row = this.userInfoRepository.create({
-        user_id: user.user_id,
-        fatherName: userInfo.fatherName,
-        gender: userInfo.gender,
-        caste: userInfo.caste,
-        annualIncome: userInfo.annualIncome,
-        class: userInfo.class,
-        aadhaar: userInfo.aadhaar,
-        studentType: userInfo.studentType,
-        previousYearMarks: userInfo.previousYearMarks,
+    const queryRunner =
+      this.userInfoRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const userRows = await queryRunner.manager.find(UserInfo, {
+        where: {
+          user_id: user.user_id,
+        },
       });
 
-      return await this.userInfoRepository.save(row);
-    } else {
-      const row = userRows[0];
-      row.fatherName = userInfo.fatherName;
-      row.gender = userInfo.gender;
-      row.caste = userInfo.caste;
-      row.annualIncome = userInfo.annualIncome;
-      row.class = userInfo.class;
-      row.aadhaar = userInfo.aadhaar;
-      row.studentType = userInfo.studentType;
-      row.previousYearMarks = userInfo.previousYearMarks;
+      let row: UserInfo;
 
-      return await this.userInfoRepository.save(row);
+      if (userRows.length === 0) {
+        row = this.userInfoRepository.create({
+          user_id: user.user_id,
+          fatherName: userInfo.fatherName,
+          gender: userInfo.gender,
+          caste: userInfo.caste,
+          annualIncome: userInfo.annualIncome,
+          class: userInfo.class,
+          aadhaar: userInfo.aadhaar,
+          studentType: userInfo.studentType,
+          previousYearMarks: userInfo.previousYearMarks,
+        });
+      } else {
+        row = userRows[0];
+        row.fatherName = userInfo.fatherName;
+        row.gender = userInfo.gender;
+        row.caste = userInfo.caste;
+        row.annualIncome = userInfo.annualIncome;
+        row.class = userInfo.class;
+        row.aadhaar = userInfo.aadhaar;
+        row.studentType = userInfo.studentType;
+        row.previousYearMarks = userInfo.previousYearMarks;
+      }
+
+      await queryRunner.manager.save(row);
+      await queryRunner.commitTransaction();
+      return row;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -278,8 +295,8 @@ export default class ProfilePopulatorCron {
     user.lastName = userData.lastName ? userData.lastName : user.lastName;
     user.middleName = userData.middleName;
     user.dob = userData.dob;
-    user.fields_verified = profFilled;
-    user.fields_verified_at = new Date();
+    user.fieldsVerified = profFilled;
+    user.fieldsVerifiedAt = new Date();
 
     await this.handleUserInfo(user, userInfo);
     await this.userRepository.save(user);
@@ -318,7 +335,7 @@ export default class ProfilePopulatorCron {
         await this.updateDatabase(profile, user);
       }
     } catch (error) {
-      console.log("Error in 'Profile Populator CRON': ", error);
+      Logger.error("Error in 'Profile Populator CRON': ", error);
     }
   }
 }
