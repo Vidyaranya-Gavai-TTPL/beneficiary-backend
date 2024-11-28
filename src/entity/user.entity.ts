@@ -41,10 +41,13 @@ export class User {
   image: string;
 
   @Column({ type: 'boolean' })
-  profileFilled: boolean;
+  fields_updated: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
-  profileFilledAt: Date;
+  fields_updated_at: Date;
+
+  @Column({ type: 'json' })
+  fields_updated_data: any;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

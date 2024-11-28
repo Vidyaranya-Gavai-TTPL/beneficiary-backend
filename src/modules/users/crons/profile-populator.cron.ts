@@ -20,6 +20,35 @@ export default class ProfilePopulatorCron {
     private readonly encryptionService: EncryptionService,
   ) {}
 
+  private romanToInt(roman: string): number {
+    const romanMap: { [key: string]: number } = {
+      I: 1,
+      V: 5,
+      X: 10,
+      L: 50,
+      C: 100,
+      D: 500,
+      M: 1000,
+    };
+
+    let total = 0;
+
+    for (let i = 0; i < roman.length; i++) {
+      const current = romanMap[roman[i]];
+      const next = romanMap[roman[i + 1]];
+
+      if (current < next) {
+        // Subtractive case (e.g., IV -> 4)
+        total -= current;
+      } else {
+        // Additive case
+        total += current;
+      }
+    }
+
+    return total;
+  }
+
   // Build Vcs in required format based on user documents
   private async buildVCs(userDocs: any) {
     const vcs = [];
@@ -43,16 +72,16 @@ export default class ProfilePopulatorCron {
       .createQueryBuilder('user')
       .orderBy(
         `CASE
-                  WHEN user.profileFilled IS NULL THEN 0
-                  WHEN user.profileFilled = false AND user.profileFilledAt IS NOT NULL THEN 1
+                  WHEN user.fields_updated IS NULL THEN 0
+                  WHEN user.fields_updated = false AND user.fields_updated_at IS NOT NULL THEN 1
                   ELSE 2
               END`,
         'ASC',
       )
       .addOrderBy(
         `CASE
-                  WHEN user.profileFilledAt IS NULL THEN "user"."updated_at"
-                  ELSE "user"."profileFilledAt"
+                  WHEN user.fields_updated_at IS NULL THEN "user"."updated_at"
+                  ELSE "user"."fields_updated_at"
               END`,
         'DESC',
       )
@@ -105,12 +134,26 @@ export default class ProfilePopulatorCron {
 
     switch (value) {
       case 'M':
-        return 'Male';
+        return 'male';
       case 'F':
-        return 'Female';
+        return 'female';
       default:
         return null;
     }
+  }
+
+  private handleClassField(vc: any, pathValue: any) {
+    let value = this.getValue(vc, pathValue);
+    if (!value) return null;
+    value = this.romanToInt(value);
+    return value;
+  }
+
+  private handleAadhaarValue(vc: any, pathValue: any) {
+    let value = this.getValue(vc, pathValue);
+    if (!value) return null;
+    value = this.encryptionService.encrypt(value);
+    return value;
   }
 
   // For a field, get its value from given vc
@@ -123,12 +166,18 @@ export default class ProfilePopulatorCron {
 
     if (!vcPaths) return null;
 
+    // If field is aadhaar, it will need to be encrypted
+    if (field === 'aadhaar') return this.handleAadhaarValue(vc, vcPaths[field]);
+
     // If it is one of the name fields, then get values accordingly
     if (['firstName', 'lastName', 'middleName', 'fatherName'].includes(field))
       return this.handleNameFields(vc, vcPaths, field);
 
     // If it is gender, value will be 'M' or 'F' from aadhaar, so adjust the value accordingly
     if (field === 'gender') return this.handleGenderField(vc, vcPaths[field]);
+
+    // If it is class, value will be roman number, so convert value accordingly
+    if (field === 'class') return this.handleClassField(vc, vcPaths[field]);
 
     return this.getValue(vc, vcPaths[field]);
   }
@@ -166,9 +215,11 @@ export default class ProfilePopulatorCron {
       fatherName: profile.fatherName,
       gender: profile.gender,
       caste: profile.caste,
+      aadhaar: profile.aadhaar,
       annualIncome: profile.annualIncome ? Number(profile.annualIncome) : null,
       class: profile.class ? Number(profile.class) : null,
       studentType: profile.studentType,
+      previousYearMarks: profile.previousYearMarks,
     };
 
     return { userData, userInfo };
@@ -190,7 +241,9 @@ export default class ProfilePopulatorCron {
         caste: userInfo.caste,
         annualIncome: userInfo.annualIncome,
         class: userInfo.class,
+        aadhaar: userInfo.aadhaar,
         studentType: userInfo.studentType,
+        previousYearMarks: userInfo.previousYearMarks,
       });
 
       return await this.userInfoRepository.save(row);
@@ -201,7 +254,9 @@ export default class ProfilePopulatorCron {
       row.caste = userInfo.caste;
       row.annualIncome = userInfo.annualIncome;
       row.class = userInfo.class;
+      row.aadhaar = userInfo.aadhaar;
       row.studentType = userInfo.studentType;
+      row.previousYearMarks = userInfo.previousYearMarks;
 
       return await this.userInfoRepository.save(row);
     }
@@ -221,8 +276,8 @@ export default class ProfilePopulatorCron {
     user.lastName = userData.lastName ? userData.lastName : user.lastName;
     user.middleName = userData.middleName;
     user.dob = userData.dob;
-    user.profileFilled = profFilled;
-    user.profileFilledAt = new Date();
+    user.fields_updated = profFilled;
+    user.fields_updated_at = new Date();
 
     await this.handleUserInfo(user, userInfo);
     await this.userRepository.save(user);
@@ -255,7 +310,7 @@ export default class ProfilePopulatorCron {
 
         // Build user-profile data
         const profile = await this.buildProfile(vcs, profileFields);
-        // console.log(profile);
+        console.log(profile);
 
         // update entries in database
         await this.updateDatabase(profile, user);
