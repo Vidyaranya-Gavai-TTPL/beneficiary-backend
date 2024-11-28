@@ -184,7 +184,7 @@ export class UserService {
       };
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
-        message: 'User retrieved successfully.',
+        message: 'User consent retrieved successfully.',
         data: final,
       });
     } catch (error) {
