@@ -72,16 +72,16 @@ export default class ProfilePopulatorCron {
       .createQueryBuilder('user')
       .orderBy(
         `CASE
-                  WHEN user.fields_updated IS NULL THEN 0
-                  WHEN user.fields_updated = false AND user.fields_updated_at IS NOT NULL THEN 1
+                  WHEN user.fields_verified IS NULL THEN 0
+                  WHEN user.fields_verified = false AND user.fields_verified_at IS NOT NULL THEN 1
                   ELSE 2
               END`,
         'ASC',
       )
       .addOrderBy(
         `CASE
-                  WHEN user.fields_updated_at IS NULL THEN "user"."updated_at"
-                  ELSE "user"."fields_updated_at"
+                  WHEN user.fields_verified_at IS NULL THEN "user"."updated_at"
+                  ELSE "user"."fields_verified_at"
               END`,
         'DESC',
       )
@@ -276,8 +276,8 @@ export default class ProfilePopulatorCron {
     user.lastName = userData.lastName ? userData.lastName : user.lastName;
     user.middleName = userData.middleName;
     user.dob = userData.dob;
-    user.fields_updated = profFilled;
-    user.fields_updated_at = new Date();
+    user.fields_verified = profFilled;
+    user.fields_verified_at = new Date();
 
     await this.handleUserInfo(user, userInfo);
     await this.userRepository.save(user);

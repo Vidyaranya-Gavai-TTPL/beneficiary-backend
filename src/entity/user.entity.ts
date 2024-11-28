@@ -41,13 +41,13 @@ export class User {
   image: string;
 
   @Column({ type: 'boolean' })
-  fields_updated: boolean;
+  fields_verified: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
-  fields_updated_at: Date;
+  fields_verified_at: Date;
 
   @Column({ type: 'json' })
-  fields_updated_data: any;
+  fields_verification_data: any;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
