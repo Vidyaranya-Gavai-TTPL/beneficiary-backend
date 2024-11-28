@@ -242,10 +242,24 @@ export class UserService {
     return userDocs;
   }
 
-  async findUserConsent(user_id: string): Promise<Consent[]> {
-    return await this.consentRepository.find({
+  async findUserConsent(user_id: string): Promise<any> {
+    const consents = await this.consentRepository.find({
       where: { user_id },
     });
+
+    // Format the response
+    return {
+      statusCode: 200,
+      message: 'User consent retrieved successfully.',
+      data: consents.map((consent) => ({
+        id: consent.id,
+        user_id: consent.user_id,
+        purpose: consent.purpose,
+        purpose_text: consent.purpose_text,
+        accepted: consent.accepted,
+        consent_date: consent.consent_date,
+      })),
+    };
   }
 
   /*async remove(user_id: string): Promise<void> {
