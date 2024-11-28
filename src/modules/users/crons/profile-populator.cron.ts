@@ -68,25 +68,31 @@ export default class ProfilePopulatorCron {
 
   // Get users from database based on conditions
   private async getUsers() {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .orderBy(
-        `CASE
-                  WHEN user.fields_verified IS NULL THEN 0
-                  WHEN user.fields_verified = false AND user.fields_verified_at IS NOT NULL THEN 1
-                  ELSE 2
-              END`,
-        'ASC',
-      )
-      .addOrderBy(
-        `CASE
-                  WHEN user.fields_verified_at IS NULL THEN "user"."updated_at"
-                  ELSE "user"."fields_verified_at"
-              END`,
-        'DESC',
-      )
-      .take(10)
-      .getMany();
+    // const users = await this.userRepository
+    //   .createQueryBuilder('user')
+    //   .orderBy(
+    //     `CASE
+    //               WHEN user.fields_verified IS NULL THEN 0
+    //               WHEN user.fields_verified = false AND user.fields_verified_at IS NOT NULL THEN 1
+    //               ELSE 2
+    //           END`,
+    //     'ASC',
+    //   )
+    //   .addOrderBy(
+    //     `CASE
+    //               WHEN user.fields_verified_at IS NULL THEN "user"."updated_at"
+    //               ELSE "user"."fields_verified_at"
+    //           END`,
+    //     'DESC',
+    //   )
+    //   .take(10)
+    //   .getMany();
+
+    const users = await this.userRepository.find({
+      where: {
+        user_id: '277aa42e-8aab-424e-9955-eec1a51b691b',
+      },
+    });
 
     return users;
   }
@@ -306,11 +312,11 @@ export default class ProfilePopulatorCron {
         const profileFields = JSON.parse(
           await readFile(profileFieldsFilePath, 'utf-8'),
         );
-        // console.log('Profile Fields: ', profileFields);
+        console.log('Profile Fields: ', profileFields);
 
         // Build user-profile data
         const profile = await this.buildProfile(vcs, profileFields);
-        console.log(profile);
+        // console.log(profile);
 
         // update entries in database
         await this.updateDatabase(profile, user);

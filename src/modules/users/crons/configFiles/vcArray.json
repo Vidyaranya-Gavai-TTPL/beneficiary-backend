@@ -8,7 +8,7 @@
   "dob": ["aadhaar"],
   "caste": ["casteCertificate"],
   "annualIncome": ["incomeCertificate"],
-  "class": ["enrolmentCertificate"],
-  "studentType": ["enrolmentCertificate"],
+  "class": ["enrollmentCertificate"],
+  "studentType": ["enrollmentCertificate"],
   "previousYearMarks": ["marksheet"]
 }
