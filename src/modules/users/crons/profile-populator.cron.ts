@@ -134,8 +134,10 @@ export default class ProfilePopulatorCron {
 
     switch (value) {
       case 'M':
+      case 'Male':
         return 'male';
       case 'F':
+      case 'Female':
         return 'female';
       default:
         return null;
@@ -283,7 +285,7 @@ export default class ProfilePopulatorCron {
     await this.userRepository.save(user);
   }
 
-  @Cron('*/10 * * * * *')
+  @Cron('*/5 * * * *')
   async populateProfile() {
     try {
       // const userInfos = await this.getUserInfo();
@@ -306,7 +308,7 @@ export default class ProfilePopulatorCron {
         const profileFields = JSON.parse(
           await readFile(profileFieldsFilePath, 'utf-8'),
         );
-        console.log('Profile Fields: ', profileFields);
+        // console.log('Profile Fields: ', profileFields);
 
         // Build user-profile data
         const profile = await this.buildProfile(vcs, profileFields);
