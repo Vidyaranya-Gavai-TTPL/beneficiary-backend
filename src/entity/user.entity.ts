@@ -40,6 +40,12 @@ export class User {
   @Column({ length: 255, nullable: true })
   image: string;
 
+  @Column({ type: 'boolean' })
+  profileFilled: boolean;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  profileFilledAt: Date;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
