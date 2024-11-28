@@ -156,7 +156,7 @@ export class UserService {
     }
   }
 
-  async findOneConsent(req: any) {
+  async findConsentByUser(req: any) {
     try {
       const sso_id = req?.user?.keycloak_id;
       if (!sso_id) {
@@ -177,7 +177,7 @@ export class UserService {
         });
       }
 
-      const consent = await this.findOneUserConsent(userDetails.user_id);
+      const consent = await this.findUserConsent(userDetails.user_id);
 
       const final = {
         ...consent,
@@ -242,12 +242,10 @@ export class UserService {
     return userDocs;
   }
 
-  async findOneUserConsent(user_id: string): Promise<Consent> {
-    let consent = await this.consentRepository.findOne({
+  async findUserConsent(user_id: string): Promise<Consent[]> {
+    return await this.consentRepository.find({
       where: { user_id },
     });
-
-    return consent;
   }
 
   /*async remove(user_id: string): Promise<void> {
