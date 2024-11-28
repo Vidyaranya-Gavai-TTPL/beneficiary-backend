@@ -74,6 +74,21 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @Get('/get_one_consent')
+  @ApiBasicAuth('access-token')
+  @ApiResponse({ status: 200, description: 'Consent data' })
+  @ApiResponse({ status: 404, description: 'Consent not found' })
+  @ApiQuery({
+    name: 'decryptData',
+    required: false,
+    description: 'Whether to decrypt user data (optional)',
+    type: Boolean,
+  })
+  async findOneConsent(@Req() req: Request) {
+    return await this.userService.findOneConsent(req);
+  }
+
+  @UseGuards(AuthGuard)
   @Post('/user_docs')
   @ApiBasicAuth('access-token')
   @ApiOperation({ summary: 'Save user docs' })
