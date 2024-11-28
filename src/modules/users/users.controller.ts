@@ -74,7 +74,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('/get_consent')
+  @Get('/get_my_consents')
   @ApiBasicAuth('access-token')
   @ApiResponse({ status: 200, description: 'Consent data' })
   @ApiResponse({ status: 404, description: 'Consent not found' })
