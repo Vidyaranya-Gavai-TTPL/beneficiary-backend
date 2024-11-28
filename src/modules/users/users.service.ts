@@ -156,6 +156,45 @@ export class UserService {
     }
   }
 
+  async findConsentByUser(req: any) {
+    try {
+      const sso_id = req?.user?.keycloak_id;
+      if (!sso_id) {
+        return new ErrorResponse({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          errorMessage: 'Invalid or missing Keycloak ID',
+        });
+      }
+
+      const userDetails = await this.userRepository.findOne({
+        where: { sso_id },
+      });
+
+      if (!userDetails) {
+        return new ErrorResponse({
+          statusCode: HttpStatus.NOT_FOUND,
+          errorMessage: `User with ID '${sso_id}' not found`,
+        });
+      }
+
+      const consent = await this.findUserConsent(userDetails.user_id);
+
+      const final = {
+        ...consent,
+      };
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'User consent retrieved successfully.',
+        data: final,
+      });
+    } catch (error) {
+      return new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: error.message,
+      });
+    }
+  }
+
   async findOneUser(user_id: string, decryptData: boolean): Promise<User> {
     let user = await this.userRepository.findOne({
       where: { user_id },
@@ -201,6 +240,12 @@ export class UserService {
     }
 
     return userDocs;
+  }
+
+  async findUserConsent(user_id: string): Promise<Consent[]> {
+    return await this.consentRepository.find({
+      where: { user_id },
+    });
   }
 
   /*async remove(user_id: string): Promise<void> {
