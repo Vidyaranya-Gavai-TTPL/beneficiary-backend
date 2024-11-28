@@ -68,31 +68,25 @@ export default class ProfilePopulatorCron {
 
   // Get users from database based on conditions
   private async getUsers() {
-    // const users = await this.userRepository
-    //   .createQueryBuilder('user')
-    //   .orderBy(
-    //     `CASE
-    //               WHEN user.fields_verified IS NULL THEN 0
-    //               WHEN user.fields_verified = false AND user.fields_verified_at IS NOT NULL THEN 1
-    //               ELSE 2
-    //           END`,
-    //     'ASC',
-    //   )
-    //   .addOrderBy(
-    //     `CASE
-    //               WHEN user.fields_verified_at IS NULL THEN "user"."updated_at"
-    //               ELSE "user"."fields_verified_at"
-    //           END`,
-    //     'DESC',
-    //   )
-    //   .take(10)
-    //   .getMany();
-
-    const users = await this.userRepository.find({
-      where: {
-        user_id: '277aa42e-8aab-424e-9955-eec1a51b691b',
-      },
-    });
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .orderBy(
+        `CASE
+                  WHEN user.fields_verified IS NULL THEN 0
+                  WHEN user.fields_verified = false AND user.fields_verified_at IS NOT NULL THEN 1
+                  ELSE 2
+              END`,
+        'ASC',
+      )
+      .addOrderBy(
+        `CASE
+                  WHEN user.fields_verified_at IS NULL THEN "user"."updated_at"
+                  ELSE "user"."fields_verified_at"
+              END`,
+        'DESC',
+      )
+      .take(10)
+      .getMany();
 
     return users;
   }
