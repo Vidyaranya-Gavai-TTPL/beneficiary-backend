@@ -191,9 +191,12 @@ export default class ProfilePopulatorCron {
   // Build user profile data based on array of fields and available vcs
   private async buildProfile(vcs: any, profileFields: any) {
     const userProfile = {};
+    const validationData = {};
     for (const field in profileFields) {
+      const docsUsed = [];
       const vcArray = profileFields[field];
 
+      // ==========  TO BE RUN IN LOOP IN FUTURE =====================
       const vc = vcs.find((vc: any) => vc.docType === vcArray[0]);
       let value: any;
       if (vc) {
@@ -201,11 +204,14 @@ export default class ProfilePopulatorCron {
       } else {
         value = null;
       }
-
+      if (value) docsUsed.push(vc.docType);
       userProfile[field] = value;
+      // ==========  TO BE RUN IN LOOP IN FUTURE =====================
+
+      validationData[field] = docsUsed;
     }
 
-    return userProfile;
+    return { userProfile, validationData };
   }
 
   // Build user data and info based on built profile
@@ -282,7 +288,7 @@ export default class ProfilePopulatorCron {
   }
 
   // Update values in database based on built profile
-  private async updateDatabase(profile: any, user: any) {
+  private async updateDatabase(profile: any, validationData: any, user: any) {
     const { userData, userInfo } = this.buildUserDataAndInfo(profile);
 
     let cnt = 0;
@@ -297,6 +303,7 @@ export default class ProfilePopulatorCron {
     user.dob = userData.dob;
     user.fieldsVerified = profFilled;
     user.fieldsVerifiedAt = new Date();
+    user.fieldsVerificationData = validationData;
 
     await this.handleUserInfo(user, userInfo);
     await this.userRepository.save(user);
@@ -328,11 +335,15 @@ export default class ProfilePopulatorCron {
         // console.log('Profile Fields: ', profileFields);
 
         // Build user-profile data
-        const profile = await this.buildProfile(vcs, profileFields);
-        // console.log(profile);
+        const { userProfile, validationData } = await this.buildProfile(
+          vcs,
+          profileFields,
+        );
+        // console.log(userProfile);
+        // console.log(validationData);
 
         // update entries in database
-        await this.updateDatabase(profile, user);
+        await this.updateDatabase(userProfile, validationData, user);
       }
     } catch (error) {
       Logger.error("Error in 'Profile Populator CRON': ", error);
