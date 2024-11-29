@@ -49,6 +49,7 @@ export class AuthService {
 
   public async register(body) {
     try {
+      let wallet_api_url = process.env.WALLET_API_URL;
       // Step 1: Check if mobile number exists in the database
       await this.checkMobileExistence(body?.phoneNumber);
 
@@ -83,10 +84,7 @@ export class AuthService {
           phoneNumber: user?.phoneNumber,
         };
 
-        await axios.post(
-          'https://dev-uba-wallet-api.tekdinext.com/users/create',
-          wallet_user_payload,
-        );
+        await axios.post(`${wallet_api_url}/users/create`, wallet_user_payload);
       }
 
       // Step 6: Return success response
