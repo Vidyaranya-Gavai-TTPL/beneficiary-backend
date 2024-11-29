@@ -309,7 +309,7 @@ export default class ProfilePopulatorCron {
     await this.userRepository.save(user);
   }
 
-  @Cron('*/10 * * * * *')
+  @Cron('*/5 * * * *')
   async populateProfile() {
     try {
       // const userInfos = await this.getUserInfo();
