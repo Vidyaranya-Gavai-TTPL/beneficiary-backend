@@ -169,11 +169,12 @@ export default class ProfilePopulatorCron {
   }
 
   private handleClassField(vc: any, pathValue: any) {
-    let value = this.getValue(vc, pathValue);
+    const value = this.getValue(vc, pathValue);
     if (!value) return null;
-    value = this.romanToInt(value);
-    if (isNaN(value)) return null;
-    return value;
+    const intValue = this.romanToInt(value);
+    // console.log('VC: ', vc);
+    if (!intValue) return value;
+    return intValue;
   }
 
   private handleAadhaarValue(vc: any, pathValue: any) {
@@ -209,6 +210,7 @@ export default class ProfilePopulatorCron {
     // If it is gender, value will be 'M' or 'F' from aadhaar, so adjust the value accordingly
     if (field === 'gender') return this.handleGenderField(vc, vcPaths[field]);
 
+    // console.log('before class' + field + (field === 'class'));
     // If it is class, value will be roman number, so convert value accordingly
     if (field === 'class') return this.handleClassField(vc, vcPaths[field]);
 
@@ -222,6 +224,7 @@ export default class ProfilePopulatorCron {
   private async buildProfile(vcs: any, profileFields: any) {
     const userProfile = {};
     const validationData = {};
+
     for (const field in profileFields) {
       const docsUsed = [];
       const vcArray = profileFields[field];
