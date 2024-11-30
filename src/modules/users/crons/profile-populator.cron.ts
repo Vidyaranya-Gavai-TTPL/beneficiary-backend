@@ -265,6 +265,7 @@ export default class ProfilePopulatorCron {
       class: profile.class ? Number(profile.class) : null,
       studentType: profile.studentType,
       previousYearMarks: profile.previousYearMarks,
+      dob: profile.dob,
     };
 
     return { userData, userInfo };
@@ -296,6 +297,7 @@ export default class ProfilePopulatorCron {
           aadhaar: userInfo.aadhaar,
           studentType: userInfo.studentType,
           previousYearMarks: userInfo.previousYearMarks,
+          dob: userInfo.dob,
         });
       } else {
         row = userRows[0];
@@ -307,6 +309,7 @@ export default class ProfilePopulatorCron {
         row.aadhaar = userInfo.aadhaar;
         row.studentType = userInfo.studentType;
         row.previousYearMarks = userInfo.previousYearMarks;
+        row.dob = userInfo.dob;
       }
 
       await queryRunner.manager.save(row);
