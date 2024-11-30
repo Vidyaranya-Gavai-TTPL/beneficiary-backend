@@ -108,6 +108,12 @@ export default class ProfilePopulatorCron {
       .take(10)
       .getMany();
 
+    // const users = await this.userRepository.find({
+    //   where: {
+    //     user_id: 'cddc4cef-b9d7-4f15-80d2-835c1f41b30d',
+    //   },
+    // });
+
     return users;
   }
 
