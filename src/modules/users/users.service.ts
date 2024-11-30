@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { User } from '../../entity/user.entity';
@@ -422,8 +427,21 @@ export class UserService {
   }
 
   async createUserDocsNew(
+    req,
     createUserDocsDto: CreateUserDocDTO[],
   ): Promise<UserDoc[]> {
+    const sso_id = req?.user?.keycloak_id;
+    if (!sso_id) {
+      throw new UnauthorizedException('Invalid or missing Keycloak ID');
+    }
+
+    const userDetails = await this.userRepository.findOne({
+      where: { sso_id },
+    });
+
+    if (!userDetails) {
+      throw new NotFoundException(`User with ID '${sso_id}' not found`);
+    }
     const baseFolder = path.join(__dirname, 'userData'); // Base folder for storing user files
 
     const savedDocs: UserDoc[] = [];
@@ -443,7 +461,7 @@ export class UserService {
       // Check if a record with the same user_id, doc_type, and doc_subtype exists in DB
       const existingDoc = await this.userDocsRepository.findOne({
         where: {
-          user_id: createUserDocDto.user_id,
+          user_id: userDetails.user_id,
           doc_type: createUserDocDto.doc_type,
           doc_subtype: createUserDocDto.doc_subtype,
         },
@@ -464,6 +482,9 @@ export class UserService {
           // Encrypt the JSON string
           createUserDocDto.doc_data =
             this.encryptionService.encrypt(jsonDataString);
+        }
+        if (!createUserDocDto?.user_id) {
+          createUserDocDto.user_id = userDetails?.user_id;
         }
 
         // Create the new document entity for the database
@@ -501,9 +522,10 @@ export class UserService {
     }
 
     if (existingDocs.length > 0) {
+      console.log('here1-----------');
       return existingDocs;
     }
-
+    console.log('here2-----------');
     return savedDocs;
   }
   // User info
