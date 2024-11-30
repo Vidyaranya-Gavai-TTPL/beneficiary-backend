@@ -63,6 +63,9 @@ export class UserInfo {
   dob: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
+  state: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
   bankAccountHolderName: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
