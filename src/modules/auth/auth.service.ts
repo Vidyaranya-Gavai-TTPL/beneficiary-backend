@@ -128,7 +128,7 @@ export class AuthService {
       credentials: [
         {
           type: 'password',
-          value: 'Password@123',
+          value: body?.password || process.env.SIGNUP_DEFAULT_PASSWORD,
           temporary: false,
         },
       ],
