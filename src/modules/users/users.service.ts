@@ -522,10 +522,8 @@ export class UserService {
     }
 
     if (existingDocs.length > 0) {
-      console.log('here1-----------');
       return existingDocs;
     }
-    console.log('here2-----------');
     return savedDocs;
   }
   // User info
@@ -736,7 +734,6 @@ export class UserService {
 
     // Step 3: Get Keycloak admin token
     const token = await this.keycloakService.getAdminKeycloakToken();
-    console.log('token-->');
 
     try {
       // Step 4: Register user in Keycloak
