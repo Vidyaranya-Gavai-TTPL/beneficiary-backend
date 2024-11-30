@@ -119,13 +119,18 @@ export class AuthService {
       enabled: 'true',
       firstName: body?.firstName,
       lastName: body?.lastName,
-      username: body?.phoneNumber,
+      username:
+        body?.firstName +
+        '_' +
+        body?.lastName?.charAt(0) +
+        '_' +
+        body?.phoneNumber?.slice(-4),
       credentials: [
-        // {
-        //   type: 'password',
-        //   value: body?.password,
-        //   temporary: false,
-        // },
+        {
+          type: 'password',
+          value: 'Password@123',
+          temporary: false,
+        },
       ],
       attributes: {
         // Custom user attributes
