@@ -104,8 +104,11 @@ export class UserController {
   @ApiOperation({ summary: 'Save user docs' })
   @ApiResponse({ status: 200, description: 'User docs saved successfully' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async createUserDocs(@Body() createUserDocDto: CreateUserDocDTO[]) {
-    return this.userService.createUserDocsNew(createUserDocDto);
+  async createUserDocs(
+    @Req() req: Request,
+    @Body() createUserDocDto: CreateUserDocDTO[],
+  ) {
+    return this.userService.createUserDocsNew(req, createUserDocDto);
   }
 
   @UseGuards(AuthGuard)
