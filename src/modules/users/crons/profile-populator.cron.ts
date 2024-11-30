@@ -266,10 +266,7 @@ export default class ProfilePopulatorCron {
       studentType: profile.studentType,
       previousYearMarks: profile.previousYearMarks,
       dob: profile.dob,
-<<<<<<< HEAD
       state: profile.state,
-=======
->>>>>>> upstream/main
     };
 
     return { userData, userInfo };
@@ -302,10 +299,7 @@ export default class ProfilePopulatorCron {
           studentType: userInfo.studentType,
           previousYearMarks: userInfo.previousYearMarks,
           dob: userInfo.dob,
-<<<<<<< HEAD
           state: userInfo.state,
-=======
->>>>>>> upstream/main
         });
       } else {
         row = userRows[0];
@@ -318,10 +312,7 @@ export default class ProfilePopulatorCron {
         row.studentType = userInfo.studentType;
         row.previousYearMarks = userInfo.previousYearMarks;
         row.dob = userInfo.dob;
-<<<<<<< HEAD
         row.state = userInfo.state;
-=======
->>>>>>> upstream/main
       }
 
       await queryRunner.manager.save(row);
@@ -387,8 +378,8 @@ export default class ProfilePopulatorCron {
           vcs,
           profileFields,
         );
-        console.log(userProfile);
-        console.log(validationData);
+        // console.log(userProfile);
+        // console.log(validationData);
 
         // update entries in database
         await this.updateDatabase(userProfile, validationData, user);
