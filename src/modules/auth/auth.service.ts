@@ -98,6 +98,57 @@ export class AuthService {
     }
   }
 
+  public async registerWithUsernamePassword(body) {
+    try {
+      let wallet_api_url = process.env.WALLET_API_URL;
+      // Step 1: Check if mobile number exists in the database
+      await this.checkMobileExistence(body?.phoneNumber);
+
+      // Step 2: Prepare user data for Keycloak registration
+      const dataToCreateUser = this.prepareUserDataV2(body);
+
+      // Step 3: Get Keycloak admin token
+      const token = await this.keycloakService.getAdminKeycloakToken();
+      this.validateToken(token);
+
+      // Step 4: Register user in Keycloak
+      const keycloakId = await this.registerUserInKeycloak(
+        dataToCreateUser,
+        token.access_token,
+      );
+
+      // Step 5: Register user in PostgreSQL
+      const userData = {
+        ...body,
+        keycloak_id: keycloakId,
+        username: dataToCreateUser.username,
+      };
+      const user = await this.userService.createKeycloakData(userData);
+
+      if (user) {
+        //create user payload
+        let wallet_user_payload = {
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          sso_provider: user?.sso_provider,
+          sso_id: user?.sso_id,
+          phoneNumber: user?.phoneNumber,
+        };
+
+        await axios.post(`${wallet_api_url}/users/create`, wallet_user_payload);
+      }
+
+      // Step 6: Return success response
+      return new SuccessResponse({
+        statusCode: HttpStatus.OK,
+        message: 'User created successfully',
+        data: user,
+      });
+    } catch (error) {
+      return this.handleRegistrationError(error, body?.keycloak_id);
+    }
+  }
+
   private async checkMobileExistence(phoneNumber: string) {
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
       throw new ErrorResponse({
@@ -119,12 +170,38 @@ export class AuthService {
       enabled: 'true',
       firstName: body?.firstName,
       lastName: body?.lastName,
+      username: body?.phoneNumber,
+      credentials: [
+        // {
+        //   type: 'password',
+        //   value: body?.password,
+        //   temporary: false,
+        // },
+      ],
+      attributes: {
+        // Custom user attributes
+        phoneNumber: '+91' + body?.phoneNumber,
+        firstName: body?.firstName,
+        lastName: body?.lastName,
+      },
+    };
+  }
+
+  private prepareUserDataV2(body) {
+    const trimmedFirstName = body?.firstName?.trim();
+    const trimmedLastName = body?.lastName?.trim();
+    const trimmedPhoneNumber = body?.phoneNumber?.trim();
+
+    return {
+      enabled: 'true',
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
       username:
-        body?.firstName +
+        trimmedFirstName +
         '_' +
-        body?.lastName?.charAt(0) +
+        trimmedLastName?.charAt(0) +
         '_' +
-        body?.phoneNumber?.slice(-4),
+        trimmedPhoneNumber?.slice(-4),
       credentials: [
         {
           type: 'password',
@@ -134,9 +211,9 @@ export class AuthService {
       ],
       attributes: {
         // Custom user attributes
-        phoneNumber: '+91' + body?.phoneNumber,
-        firstName: body?.firstName,
-        lastName: body?.lastName,
+        phoneNumber: '+91' + trimmedPhoneNumber,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
       },
     };
   }
