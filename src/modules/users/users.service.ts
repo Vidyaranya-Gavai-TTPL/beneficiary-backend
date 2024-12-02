@@ -541,15 +541,6 @@ export class UserService {
       // Build VCs
       const VCs = await this.profilePopulator.buildVCs(docsArray);
 
-      // // Get array of profile fields
-      // const profileFieldsFilePath = path.join(
-      //   __dirname,
-      //   '../../../src/modules/users/crons/configFiles/vcArray.json',
-      // );
-      // const profileFields = JSON.parse(
-      //   await readFile(profileFieldsFilePath, 'utf-8'),
-      // );
-
       // // build profile data
       const { userProfile, validationData } =
         await this.profilePopulator.buildProfile(VCs);
