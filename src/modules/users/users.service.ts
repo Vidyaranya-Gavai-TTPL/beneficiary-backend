@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
@@ -24,8 +26,12 @@ import { ErrorResponse } from 'src/common/responses/error-response';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DocumentListProvider } from 'src/common/helper/DocumentListProvider';
+import ProfilePopulatorCron from './crons/profile-populator.cron';
+import { readFile } from 'fs/promises';
+
 @Injectable()
 export class UserService {
+  private readonly populator: ProfilePopulatorCron;
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -39,7 +45,14 @@ export class UserService {
     @InjectRepository(UserApplication)
     private readonly userApplicationRepository: Repository<UserApplication>,
     private readonly keycloakService: KeycloakService,
-  ) {}
+  ) {
+    this.populator = new ProfilePopulatorCron(
+      userRepository,
+      userDocsRepository,
+      userInfoRepository,
+      encryptionService,
+    );
+  }
 
   async create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
@@ -519,6 +532,40 @@ export class UserService {
           console.error('Error writing to file:', err);
         }
       }
+    }
+
+    // Update profile based on documents
+    try {
+      // Combine old & new docs
+      const docsArray = [...existingDocs, ...savedDocs];
+
+      // Build VCs
+      const VCs = await this.populator.buildVCs(docsArray);
+
+      // Get array of profile fields
+      const profileFieldsFilePath = path.join(
+        __dirname,
+        '../../../src/modules/users/crons/configFiles/vcArray.json',
+      );
+      const profileFields = JSON.parse(
+        await readFile(profileFieldsFilePath, 'utf-8'),
+      );
+
+      // build profile data
+      const { userProfile, validationData } = await this.populator.buildProfile(
+        VCs,
+        profileFields,
+      );
+
+      // Update database entries
+      await this.populator.updateDatabase(
+        userProfile,
+        validationData,
+        userDetails,
+      );
+    } catch (error) {
+      Logger.error('Error in createUserDocsNew: ', error);
+      throw new InternalServerErrorException(error);
     }
 
     if (existingDocs.length > 0) {

@@ -71,7 +71,7 @@ export default class ProfilePopulatorCron {
   }
 
   // Build Vcs in required format based on user documents
-  private async buildVCs(userDocs: any) {
+  async buildVCs(userDocs: any) {
     const vcs = [];
 
     // Build VC array
@@ -221,7 +221,7 @@ export default class ProfilePopulatorCron {
   }
 
   // Build user profile data based on array of fields and available vcs
-  private async buildProfile(vcs: any, profileFields: any) {
+  async buildProfile(vcs: any, profileFields: any) {
     const userProfile = {};
     const validationData = {};
 
@@ -327,7 +327,7 @@ export default class ProfilePopulatorCron {
   }
 
   // Update values in database based on built profile
-  private async updateDatabase(profile: any, validationData: any, user: any) {
+  async updateDatabase(profile: any, validationData: any, user: any) {
     const { userData, userInfo } = this.buildUserDataAndInfo(profile);
 
     let cnt = 0;
