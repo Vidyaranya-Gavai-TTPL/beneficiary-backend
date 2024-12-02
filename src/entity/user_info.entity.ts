@@ -62,7 +62,7 @@ export class UserInfo {
   @Column({ type: 'varchar', length: 50, nullable: true })
   dob: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   state: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
