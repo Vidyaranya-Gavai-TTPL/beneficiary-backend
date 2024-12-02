@@ -84,31 +84,6 @@ export default class ProfilePopulator {
     return vcs;
   }
 
-  // Get users from database based on conditions
-  private async getUsers() {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .orderBy(
-        `CASE
-                  WHEN user.fieldsVerified IS NULL THEN 0
-                  WHEN user.fieldsVerified = false AND user.fieldsVerifiedAt IS NOT NULL THEN 1
-                  ELSE 2
-              END`,
-        'ASC',
-      )
-      .addOrderBy(
-        `CASE
-                  WHEN user.fieldsVerifiedAt IS NULL THEN "user"."updated_at"
-                  ELSE "user"."fieldsVerifiedAt"
-              END`,
-        'ASC',
-      )
-      .take(10)
-      .getMany();
-
-    return users;
-  }
-
   // Get user documents from database
   private async getUserDocs(user: any) {
     const userDocs = await this.userDocRepository.find({
@@ -356,10 +331,8 @@ export default class ProfilePopulator {
     await this.userRepository.save(user);
   }
 
-  async populateProfile() {
+  async populateProfile(users: any) {
     try {
-      const users = await this.getUsers();
-
       for (const user of users) {
         // Get documents from database
         const userDocs = await this.getUserDocs(user);

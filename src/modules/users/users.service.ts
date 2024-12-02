@@ -26,7 +26,7 @@ import { ErrorResponse } from 'src/common/responses/error-response';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DocumentListProvider } from 'src/common/helper/DocumentListProvider';
-import ProfilePopulator from 'src/common/helper/profileUpdate/profile-populator.cron';
+import ProfilePopulator from 'src/common/helper/profileUpdate/profile-update';
 
 @Injectable()
 export class UserService {
