@@ -26,12 +26,11 @@ import { ErrorResponse } from 'src/common/responses/error-response';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DocumentListProvider } from 'src/common/helper/DocumentListProvider';
-import ProfilePopulatorCron from './crons/profile-populator.cron';
-import { readFile } from 'fs/promises';
+import ProfilePopulator from 'src/common/helper/profileUpdate/profile-populator.cron';
 
 @Injectable()
 export class UserService {
-  private readonly populator: ProfilePopulatorCron;
+  private readonly profilePopulator: ProfilePopulator;
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -46,7 +45,7 @@ export class UserService {
     private readonly userApplicationRepository: Repository<UserApplication>,
     private readonly keycloakService: KeycloakService,
   ) {
-    this.populator = new ProfilePopulatorCron(
+    this.profilePopulator = new ProfilePopulator(
       userRepository,
       userDocsRepository,
       userInfoRepository,
@@ -540,25 +539,23 @@ export class UserService {
       const docsArray = [...existingDocs, ...savedDocs];
 
       // Build VCs
-      const VCs = await this.populator.buildVCs(docsArray);
+      const VCs = await this.profilePopulator.buildVCs(docsArray);
 
-      // Get array of profile fields
-      const profileFieldsFilePath = path.join(
-        __dirname,
-        '../../../src/modules/users/crons/configFiles/vcArray.json',
-      );
-      const profileFields = JSON.parse(
-        await readFile(profileFieldsFilePath, 'utf-8'),
-      );
+      // // Get array of profile fields
+      // const profileFieldsFilePath = path.join(
+      //   __dirname,
+      //   '../../../src/modules/users/crons/configFiles/vcArray.json',
+      // );
+      // const profileFields = JSON.parse(
+      //   await readFile(profileFieldsFilePath, 'utf-8'),
+      // );
 
-      // build profile data
-      const { userProfile, validationData } = await this.populator.buildProfile(
-        VCs,
-        profileFields,
-      );
+      // // build profile data
+      const { userProfile, validationData } =
+        await this.profilePopulator.buildProfile(VCs);
 
       // Update database entries
-      await this.populator.updateDatabase(
+      await this.profilePopulator.updateDatabase(
         userProfile,
         validationData,
         userDetails,
