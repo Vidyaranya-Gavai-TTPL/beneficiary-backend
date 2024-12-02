@@ -106,6 +106,8 @@ export class AuthService {
 
       // Step 2: Prepare user data for Keycloak registration
       const dataToCreateUser = this.prepareUserDataV2(body);
+      let { password, ...rest } = dataToCreateUser;
+      let username = dataToCreateUser.username;
 
       // Step 3: Get Keycloak admin token
       const token = await this.keycloakService.getAdminKeycloakToken();
@@ -113,7 +115,7 @@ export class AuthService {
 
       // Step 4: Register user in Keycloak
       const keycloakId = await this.registerUserInKeycloak(
-        dataToCreateUser,
+        rest,
         token.access_token,
       );
 
@@ -142,7 +144,7 @@ export class AuthService {
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
         message: 'User created successfully',
-        data: user,
+        data: { user, username, password },
       });
     } catch (error) {
       return this.handleRegistrationError(error, body?.keycloak_id);
@@ -191,6 +193,7 @@ export class AuthService {
     const trimmedFirstName = body?.firstName?.trim();
     const trimmedLastName = body?.lastName?.trim();
     const trimmedPhoneNumber = body?.phoneNumber?.trim();
+    const password = body?.password || process.env.SIGNUP_DEFAULT_PASSWORD;
 
     return {
       enabled: 'true',
@@ -205,10 +208,11 @@ export class AuthService {
       credentials: [
         {
           type: 'password',
-          value: body?.password || process.env.SIGNUP_DEFAULT_PASSWORD,
+          value: password,
           temporary: false,
         },
       ],
+      password, // Return the password directly
       attributes: {
         // Custom user attributes
         phoneNumber: '+91' + trimmedPhoneNumber,
