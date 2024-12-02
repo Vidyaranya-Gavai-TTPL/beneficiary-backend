@@ -107,7 +107,7 @@ export class AuthService {
       // Step 2: Prepare user data for Keycloak registration
       const dataToCreateUser = this.prepareUserDataV2(body);
       let { password, ...rest } = dataToCreateUser;
-      let username = dataToCreateUser.username;
+      let userName = dataToCreateUser.username;
 
       // Step 3: Get Keycloak admin token
       const token = await this.keycloakService.getAdminKeycloakToken();
@@ -144,7 +144,7 @@ export class AuthService {
       return new SuccessResponse({
         statusCode: HttpStatus.OK,
         message: 'User created successfully',
-        data: { user, username, password },
+        data: { user, userName, password },
       });
     } catch (error) {
       return this.handleRegistrationError(error, body?.keycloak_id);
