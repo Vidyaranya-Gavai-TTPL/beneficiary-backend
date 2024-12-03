@@ -76,13 +76,16 @@ export default class ProfilePopulator {
       let decryptedData: any;
       try {
         decryptedData = await this.encryptionService.decrypt(doc.doc_data);
+        const content = JSON.parse(decryptedData);
+        vcs.push({ docType, content });
       } catch (error) {
-        Logger.error(`Decryption failed for doc ${doc.id}:`, error);
+        const errorMessage =
+          error instanceof SyntaxError
+            ? `Invalid JSON format in doc ${doc.id}`
+            : `Decryption failed for doc ${doc.id}`;
+        Logger.error(`${errorMessage}:`, error);
         continue;
       }
-      const content = JSON.parse(decryptedData);
-
-      vcs.push({ docType, content });
     }
 
     return vcs;
@@ -353,17 +356,22 @@ export default class ProfilePopulator {
   async populateProfile(users: any) {
     try {
       for (const user of users) {
-        // Get documents from database
-        const userDocs = await this.getUserDocs(user);
+        try {
+          // Get documents from database
+          const userDocs = await this.getUserDocs(user);
 
-        // Build VCs in required format
-        const vcs = await this.buildVCs(userDocs);
+          // Build VCs in required format
+          const vcs = await this.buildVCs(userDocs);
 
-        // Build user-profile data
-        const { userProfile, validationData } = await this.buildProfile(vcs);
+          // Build user-profile data
+          const { userProfile, validationData } = await this.buildProfile(vcs);
 
-        // update entries in database
-        await this.updateDatabase(userProfile, validationData, user);
+          // update entries in database
+          await this.updateDatabase(userProfile, validationData, user);
+        } catch (error) {
+          Logger.error(`Failed to process user ${user.user_id}:`, error);
+          continue;
+        }
       }
     } catch (error) {
       Logger.error("Error in 'Profile Populator CRON': ", error);
