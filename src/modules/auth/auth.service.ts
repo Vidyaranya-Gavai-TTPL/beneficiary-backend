@@ -101,8 +101,6 @@ export class AuthService {
   public async registerWithUsernamePassword(body) {
     try {
       let wallet_api_url = process.env.WALLET_API_URL;
-      // Step 1: Check if mobile number exists in the database
-      await this.checkMobileExistence(body?.phoneNumber);
 
       // Step 2: Prepare user data for Keycloak registration
       const dataToCreateUser = this.prepareUserDataV2(body);
