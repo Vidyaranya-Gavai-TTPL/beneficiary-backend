@@ -1,7 +1,7 @@
 import { User } from '@entities/user.entity';
 import { UserDoc } from '@entities/user_docs.entity';
 import { UserInfo } from '@entities/user_info.entity';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 import * as path from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { EncryptionService } from 'src/common/helper/encryptionService';
 import { parse, format, isValid } from 'date-fns';
 
+@Injectable()
 export default class ProfilePopulator {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,

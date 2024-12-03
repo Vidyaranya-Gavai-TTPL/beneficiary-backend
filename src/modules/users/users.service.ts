@@ -30,7 +30,6 @@ import ProfilePopulator from 'src/common/helper/profileUpdate/profile-update';
 
 @Injectable()
 export class UserService {
-  private readonly profilePopulator: ProfilePopulator;
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -44,14 +43,8 @@ export class UserService {
     @InjectRepository(UserApplication)
     private readonly userApplicationRepository: Repository<UserApplication>,
     private readonly keycloakService: KeycloakService,
-  ) {
-    this.profilePopulator = new ProfilePopulator(
-      userRepository,
-      userDocsRepository,
-      userInfoRepository,
-      encryptionService,
-    );
-  }
+    private readonly profilePopulator: ProfilePopulator,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
