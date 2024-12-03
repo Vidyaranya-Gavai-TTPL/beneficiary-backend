@@ -191,7 +191,8 @@ export class AuthService {
     const trimmedFirstName = body?.firstName?.trim();
     const trimmedLastName = body?.lastName?.trim();
     const trimmedPhoneNumber = body?.phoneNumber?.trim();
-    const password = body?.password || process.env.SIGNUP_DEFAULT_PASSWORD;
+    const password =
+      body?.password?.trim() || process.env.SIGNUP_DEFAULT_PASSWORD;
 
     return {
       enabled: 'true',
