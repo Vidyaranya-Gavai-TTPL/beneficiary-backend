@@ -36,7 +36,7 @@ export default class ProfilePopulator {
       }
     }
 
-    return null; // Return null if no format matches
+    return null;
   }
 
   private romanToInt(roman: string): number {
@@ -57,10 +57,8 @@ export default class ProfilePopulator {
       const next = romanMap[roman[i + 1]] || 0;
 
       if (current < next) {
-        // Subtractive case (e.g., IV -> 4)
         total -= current;
       } else {
-        // Additive case
         total += current;
       }
     }
@@ -80,7 +78,7 @@ export default class ProfilePopulator {
         decryptedData = await this.encryptionService.decrypt(doc.doc_data);
       } catch (error) {
         Logger.error(`Decryption failed for doc ${doc.id}:`, error);
-        continue; // Skip this document and proceed with others
+        continue;
       }
       const content = JSON.parse(decryptedData);
 
@@ -153,7 +151,6 @@ export default class ProfilePopulator {
     const value = this.getValue(vc, pathValue);
     if (!value) return null;
     const intValue = this.romanToInt(value);
-    // console.log('VC: ', vc);
     if (!intValue) return value;
     return intValue;
   }
@@ -214,7 +211,6 @@ export default class ProfilePopulator {
     const profileFields = JSON.parse(
       await readFile(profileFieldsFilePath, 'utf-8'),
     );
-    // console.log('Profile Fields: ', profileFields);
 
     for (const field in profileFields) {
       const docsUsed = [];
@@ -227,7 +223,7 @@ export default class ProfilePopulator {
           value = await this.getFieldValueFromVC(vc, field);
           if (value) {
             docsUsed.push(vc.docType);
-            break; // Exit loop after finding the value
+            break;
           }
         }
       }
@@ -362,12 +358,9 @@ export default class ProfilePopulator {
 
         // Build VCs in required format
         const vcs = await this.buildVCs(userDocs);
-        // console.log('VCs: ', vcs);
 
         // Build user-profile data
         const { userProfile, validationData } = await this.buildProfile(vcs);
-        // console.log(userProfile);
-        // console.log(validationData);
 
         // update entries in database
         await this.updateDatabase(userProfile, validationData, user);
