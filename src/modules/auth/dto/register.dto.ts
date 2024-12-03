@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -30,6 +31,7 @@ export class RegisterDTO {
   @ApiProperty({})
   @IsOptional()
   @ValidateIf((obj) => obj.password !== undefined && obj.password !== null)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
