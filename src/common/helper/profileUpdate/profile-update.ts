@@ -75,7 +75,13 @@ export default class ProfilePopulator {
     // Build VC array
     for (const doc of userDocs) {
       const docType = doc.doc_subtype;
-      const decryptedData = await this.encryptionService.decrypt(doc.doc_data);
+      let decryptedData: any;
+      try {
+        decryptedData = await this.encryptionService.decrypt(doc.doc_data);
+      } catch (error) {
+        Logger.error(`Decryption failed for doc ${doc.id}:`, error);
+        continue; // Skip this document and proceed with others
+      }
       const content = JSON.parse(decryptedData);
 
       vcs.push({ docType, content });
@@ -98,7 +104,9 @@ export default class ProfilePopulator {
   // Get value from VC following a path (pathValue)
   private getValue(vc: any, pathValue: any) {
     if (!pathValue) return null;
-    return pathValue.split('.').reduce((acc, part) => acc?.[part], vc.content);
+    return pathValue.split('.').reduce((acc, part) => {
+      return acc && acc[part] !== undefined ? acc[part] : null;
+    }, vc.content);
   }
 
   // Handle name fields which are not directcly present in aadhaar vc
@@ -212,18 +220,19 @@ export default class ProfilePopulator {
       const docsUsed = [];
       const vcArray = profileFields[field];
 
-      // ==========  TO BE RUN IN LOOP IN FUTURE =====================
-      const vc = vcs.find((vc: any) => vc.docType === vcArray[0]);
-      let value: any;
-      if (vc) {
-        value = await this.getFieldValueFromVC(vc, field);
-      } else {
-        value = null;
+      let value = null;
+      for (const docType of vcArray) {
+        const vc = vcs.find((vc: any) => vc.docType === docType);
+        if (vc) {
+          value = await this.getFieldValueFromVC(vc, field);
+          if (value) {
+            docsUsed.push(vc.docType);
+            break; // Exit loop after finding the value
+          }
+        }
       }
-      if (value) docsUsed.push(vc.docType);
-      userProfile[field] = value;
-      // ==========  TO BE RUN IN LOOP IN FUTURE =====================
 
+      userProfile[field] = value;
       validationData[field] = docsUsed;
     }
 
@@ -328,7 +337,21 @@ export default class ProfilePopulator {
     user.fieldsVerificationData = validationData;
 
     await this.handleUserInfo(user, userInfo);
-    await this.userRepository.save(user);
+
+    const queryRunner =
+      this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      await queryRunner.manager.save(user);
+      await queryRunner.commitTransaction();
+      return user;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async populateProfile(users: any) {

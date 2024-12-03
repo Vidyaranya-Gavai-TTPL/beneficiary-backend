@@ -553,7 +553,9 @@ export class UserService {
       );
     } catch (error) {
       Logger.error('Error in createUserDocsNew: ', error);
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while processing your request.',
+      );
     }
 
     if (existingDocs.length > 0) {
