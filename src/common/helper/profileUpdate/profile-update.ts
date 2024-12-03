@@ -320,6 +320,26 @@ export default class ProfilePopulator {
 
   // Update values in database based on built profile
   async updateDatabase(profile: any, validationData: any, user: any) {
+    // ===Reset user verification status===
+    user.fieldsVerified = false;
+    user.fieldsVerifiedAt = new Date();
+    user.fieldsVerificationData = null;
+
+    const queryRunner1 =
+      this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner1.connect();
+    await queryRunner1.startTransaction();
+    try {
+      await queryRunner1.manager.save(user);
+      await queryRunner1.commitTransaction();
+    } catch (error) {
+      await queryRunner1.rollbackTransaction();
+      Logger.error(`Error while reseting user profile: ${error}`);
+    } finally {
+      await queryRunner1.release();
+    }
+    // ===================================
+
     const { userData, userInfo } = this.buildUserDataAndInfo(profile);
 
     let cnt = 0;
