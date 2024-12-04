@@ -194,7 +194,6 @@ export default class ProfilePopulator {
     // If it is gender, value will be 'M' or 'F' from aadhaar, so adjust the value accordingly
     if (field === 'gender') return this.handleGenderField(vc, vcPaths[field]);
 
-    // console.log('before class' + field + (field === 'class'));
     // If it is class, value will be roman number, so convert value accordingly
     if (field === 'class') return this.handleClassField(vc, vcPaths[field]);
 
@@ -394,7 +393,6 @@ export default class ProfilePopulator {
 
           // Build user-profile data
           const { userProfile, validationData } = await this.buildProfile(vcs);
-          console.log(userProfile, validationData);
 
           // update entries in database
           await this.updateDatabase(userProfile, validationData, user);
