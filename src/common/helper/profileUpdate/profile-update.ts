@@ -172,6 +172,30 @@ export default class ProfilePopulator {
     return this.formatDateToISO(value);
   }
 
+  private handleIncomeValue(vc: any, pathValue: any): number | null {
+    const value = this.getValue(vc, pathValue);
+
+    if (value === null) return null;
+    if (typeof value === 'number') {
+      if (isNaN(value) || value < 0) {
+        Logger.warn('Invalid income value');
+        return null;
+      }
+    }
+
+    // Remove commas and spaces, then validate the format
+    const sanitizedValue = value.replace(/[, ']/g, '');
+
+    // Validate the format. If format fails it will return null
+    // if (!/^\d+$/.test(sanitizedValue)) {
+    //   Logger.warn(`Invalid income format: ${value}`);
+    //   return null;
+    // }
+
+    // Convert to number and return
+    return Number(sanitizedValue);
+  }
+
   // For a field, get its value from given vc
   private async getFieldValueFromVC(vc: any, field: any) {
     const filePath = path.join(
@@ -192,12 +216,15 @@ export default class ProfilePopulator {
     // If it is gender, value will be 'M' or 'F' from aadhaar, so adjust the value accordingly
     if (field === 'gender') return this.handleGenderField(vc, vcPaths[field]);
 
-    // console.log('before class' + field + (field === 'class'));
     // If it is class, value will be roman number, so convert value accordingly
     if (field === 'class') return this.handleClassField(vc, vcPaths[field]);
 
     // If it is dob, then adjust format as per database
     if (field === 'dob') return this.handleDobValue(vc, vcPaths[field]);
+
+    // If it is income, need to check for commas or spaces etc.
+    if (field === 'annualIncome')
+      return this.handleIncomeValue(vc, vcPaths[field]);
 
     return this.getValue(vc, vcPaths[field]);
   }
