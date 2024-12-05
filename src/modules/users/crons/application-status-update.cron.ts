@@ -20,7 +20,7 @@ export class ApplicationStatusUpdate {
     try {
       const applications = await this.userApplicationRepository.find({
         where: {
-          status: Not(In(['amount received', 'rejected'])),
+          status: Not(In(['amount received', 'rejected', 'disbursed'])),
         },
       });
 
@@ -59,7 +59,7 @@ export class ApplicationStatusUpdate {
       context: {
         domain: 'onest:financial-support',
         action: 'status',
-        timestamp: '2023-08-02T07:21:58.448Z',
+        timestamp: new Date().toISOString(),
         ttl: 'PT10M',
         version: '1.1.0',
         bap_id: this.configService.get<string>('BAP_ID'),
@@ -89,15 +89,14 @@ export class ApplicationStatusUpdate {
 
   async processApplications(applications: any) {
     try {
-      for (const application of applications) {
-        // Call ONEST API to get status of application based on external_application_id
-        const status = await this.getStatus(
-          application.external_application_id,
-        );
-
-        // Update status
-        await this.updateStatus(application, status);
-      }
+      await Promise.all(
+        applications.map(async (application: any) => {
+          const status = await this.getStatus(
+            application.external_application_id,
+          );
+          await this.updateStatus(application, status);
+        }),
+      );
     } catch (error) {
       Logger.error(`Error while processing applications: ${error}`);
     }
