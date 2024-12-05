@@ -175,11 +175,22 @@ export default class ProfilePopulator {
   private handleIncomeValue(vc: any, pathValue: any): number | null {
     const value = this.getValue(vc, pathValue);
 
-    // Allow null or already numeric values
-    if (typeof value === 'number' || value === null) return value;
+    if (value === null) return null;
+    if (typeof value === 'number') {
+      if (isNaN(value) || value < 0) {
+        Logger.warn('Invalid income value');
+        return null;
+      }
+    }
 
     // Remove commas and spaces, then validate the format
-    const sanitizedValue = value.replace(/[, ]/g, '');
+    const sanitizedValue = value.replace(/[, ']/g, '');
+
+    // Validate the format. If format fails it will return null
+    // if (!/^\d+$/.test(sanitizedValue)) {
+    //   Logger.warn(`Invalid income format: ${value}`);
+    //   return null;
+    // }
 
     // Convert to number and return
     return Number(sanitizedValue);
