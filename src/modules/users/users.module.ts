@@ -11,6 +11,8 @@ import { UserApplication } from '@entities/user_applications.entity';
 import { KeycloakService } from '@services/keycloak/keycloak.service';
 import ProfilePopulatorCron from './crons/profile-populator.cron';
 import ProfilePopulator from 'src/common/helper/profileUpdate/profile-update';
+import { ApplicationStatusUpdate } from './crons/application-status-update.cron';
+import { ProxyService } from '@services/proxy/proxy.service';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import ProfilePopulator from 'src/common/helper/profileUpdate/profile-update';
     KeycloakService,
     ProfilePopulatorCron,
     ProfilePopulator,
+    ApplicationStatusUpdate,
+    ProxyService,
   ],
 })
 export class UserModule {}
