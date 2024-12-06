@@ -447,6 +447,7 @@ export class UserService {
     if (!userDetails) {
       throw new NotFoundException(`User with ID '${sso_id}' not found`);
     }
+
     const baseFolder = path.join(__dirname, 'userData'); // Base folder for storing user files
 
     const savedDocs: UserDoc[] = [];
@@ -528,11 +529,13 @@ export class UserService {
 
     // Update profile based on documents
     try {
-      // Combine old & new docs
-      const docsArray = [...existingDocs, ...savedDocs];
+      // Get all docs
+      const allDocs = await this.userDocsRepository.find({
+        where: { user_id: userDetails.user_id },
+      });
 
       // Build VCs
-      const VCs = await this.profilePopulator.buildVCs(docsArray);
+      const VCs = await this.profilePopulator.buildVCs(allDocs);
 
       // // build profile data
       const { userProfile, validationData } =
@@ -545,9 +548,9 @@ export class UserService {
         userDetails,
       );
     } catch (error) {
-      Logger.error('Error in createUserDocsNew: ', error);
+      Logger.error('Error in updating fields: ', error);
       throw new InternalServerErrorException(
-        'An unexpected error occurred while processing your request.',
+        'An unexpected error occurred while updating profile.',
       );
     }
 
