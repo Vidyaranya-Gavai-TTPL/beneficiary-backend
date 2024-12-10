@@ -490,8 +490,6 @@ export class UserService {
       const { userProfile, validationData } =
         await this.profilePopulator.buildProfile(VCs);
 
-      console.log(userProfile, validationData);
-
       // Update database entries
       await this.profilePopulator.updateDatabase(
         userProfile,
