@@ -9,6 +9,8 @@ import {
   UseGuards,
   Req,
   ParseUUIDPipe,
+  Delete,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import {
@@ -178,5 +180,19 @@ export class UserController {
     @Body() requestBody: { filters: any; search: string },
   ) {
     return this.userService.findAllApplicationsByUserId(requestBody);
+  }
+
+  @Delete('/delete-doc/:doc_id')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Delete a document' })
+  @ApiBasicAuth('access-token')
+  async deleteDoc(@Req() req: any, @Param() doc_id: any) {
+    const user = req?.user;
+    if (!user) {
+      throw new UnauthorizedException('User is not authenticated');
+    }
+    const ssoId = user.keycloak_id;
+
+    return await this.userService.delete(doc_id.doc_id, ssoId);
   }
 }

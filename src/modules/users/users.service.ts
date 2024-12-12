@@ -826,4 +826,66 @@ export class UserService {
       }
     }
   }
+
+  async delete(doc_id: string, sso_id: string) {
+    // Get user_id of logged in user
+    const user = await this.userRepository.findOne({
+      where: { sso_id: sso_id },
+    });
+
+    if (!user)
+      return new ErrorResponse({
+        statusCode: 404,
+        errorMessage: 'User with given sso_id not found',
+      });
+
+    const user_id = user.user_id;
+
+    // Check if document exists or not, if not then send erorr response
+    const existingDoc = await this.userDocsRepository.findOne({
+      where: {
+        doc_id: doc_id,
+      },
+    });
+
+    if (!existingDoc) {
+      Logger.error(`Document with id ${doc_id} does not exists`);
+      return new ErrorResponse({
+        statusCode: 400,
+        errorMessage: `Document with id ${doc_id} does not exists`,
+      });
+    }
+
+    // Check if logged in user is allowed to delete this document or not
+    if (existingDoc.user_id !== user_id)
+      return new ErrorResponse({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorMessage:
+          'You are not authorized to modify or delete this resourse',
+      });
+
+    // Delete the document
+    const queryRunner =
+      this.userDocsRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    try {
+      await queryRunner.startTransaction();
+      await queryRunner.manager.remove(existingDoc);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      Logger.error('Error while deleting the document: ', error);
+      await queryRunner.release();
+      return new ErrorResponse({
+        statusCode: 500,
+        errorMessage: `Error while deleting the document: ${error}`,
+      });
+    } finally {
+      await queryRunner.release();
+    }
+
+    return new SuccessResponse({
+      statusCode: 200,
+      message: 'Document deleted successfully',
+    });
+  }
 }
