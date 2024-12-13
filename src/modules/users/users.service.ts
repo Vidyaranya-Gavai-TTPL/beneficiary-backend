@@ -884,7 +884,7 @@ export class UserService {
     }
 
     return new SuccessResponse({
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       message: 'Document deleted successfully',
     });
   }
