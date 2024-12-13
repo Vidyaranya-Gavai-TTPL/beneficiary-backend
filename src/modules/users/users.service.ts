@@ -835,7 +835,7 @@ export class UserService {
 
     if (!user)
       return new ErrorResponse({
-        statusCode: 404,
+        statusCode: HttpStatus.NOT_FOUND,
         errorMessage: 'User with given sso_id not found',
       });
 
@@ -851,7 +851,7 @@ export class UserService {
     if (!existingDoc) {
       Logger.error(`Document with id ${doc_id} does not exists`);
       return new ErrorResponse({
-        statusCode: 400,
+        statusCode: HttpStatus.BAD_REQUEST,
         errorMessage: `Document with id ${doc_id} does not exists`,
       });
     }
@@ -876,7 +876,7 @@ export class UserService {
       Logger.error('Error while deleting the document: ', error);
       await queryRunner.release();
       return new ErrorResponse({
-        statusCode: 500,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         errorMessage: `Error while deleting the document: ${error}`,
       });
     } finally {
