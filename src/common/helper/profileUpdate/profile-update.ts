@@ -69,6 +69,20 @@ export default class ProfilePopulator {
     return total;
   }
 
+  private convertToTwoDecimalPercentage(input: string | number): string {
+    if (typeof input === 'string') {
+      const parsed = parseFloat(input);
+      if (isNaN(parsed)) {
+        return null;
+      }
+      return parsed.toFixed(2);
+    } else if (typeof input === 'number') {
+      return input.toFixed(2);
+    } else {
+      return null;
+    }
+  }
+
   // Build Vcs in required format based on user documents
   async buildVCs(userDocs: any) {
     const vcs = [];
@@ -198,6 +212,14 @@ export default class ProfilePopulator {
     return Number(sanitizedValue);
   }
 
+  private handleMarksValue(vc: any, pathValue: any): string | null {
+    let value = this.getValue(vc, pathValue);
+    if (value === null) return null;
+
+    value = this.convertToTwoDecimalPercentage(value);
+    return value;
+  }
+
   // For a field, get its value from given vc
   private async getFieldValueFromVC(vc: any, field: any) {
     const filePath = path.join(
@@ -227,6 +249,9 @@ export default class ProfilePopulator {
     // If it is income, need to check for commas or spaces etc.
     if (field === 'annualIncome')
       return this.handleIncomeValue(vc, vcPaths[field]);
+
+    if (field === 'previousYearMarks')
+      return this.handleMarksValue(vc, vcPaths[field]);
 
     return this.getValue(vc, vcPaths[field]);
   }
