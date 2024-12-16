@@ -75,11 +75,14 @@ export default class ProfilePopulator {
     }
     if (typeof input === 'string') {
       const parsed = parseFloat(input);
-      if (isNaN(parsed)) {
+      if (isNaN(parsed) || !isFinite(parsed)) {
         return null;
       }
       return parsed.toFixed(2);
     } else if (typeof input === 'number') {
+      if (!Number.isFinite(input)) {
+        return null;
+      }
       return input.toFixed(2);
     } else {
       return null;
