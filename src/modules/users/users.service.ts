@@ -504,6 +504,26 @@ export class UserService {
     }
   }
 
+  async deleteDoc(doc: UserDoc) {
+    const queryRunner =
+      this.userDocsRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    try {
+      await queryRunner.startTransaction();
+      await queryRunner.manager.remove(doc);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      Logger.error('Error while deleting the document: ', error);
+      await queryRunner.rollbackTransaction();
+      throw new ErrorResponse({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: `Error while deleting the document: ${error}`,
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async createUserDocsNew(
     req,
     createUserDocsDto: CreateUserDocDTO[],
@@ -534,45 +554,31 @@ export class UserService {
         },
       });
 
-      if (existingDoc) {
-        const queryRunner =
-          this.userDocsRepository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        try {
-          await queryRunner.startTransaction();
-          await queryRunner.manager.remove(existingDoc);
-          await queryRunner.commitTransaction();
-        } catch (error) {
-          Logger.error('Error while deleting the document: ', error);
-          await queryRunner.release();
-          throw new ErrorResponse({
-            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-            errorMessage: `Error while deleting the document: ${error}`,
-          });
-        } finally {
-          await queryRunner.release();
-        }
-      }
+      if (existingDoc) await this.deleteDoc(existingDoc);
 
-      if (
-        createUserDocDto.doc_data &&
-        typeof createUserDocDto.doc_data !== 'string'
-      ) {
-        const jsonDataString = JSON.stringify(createUserDocDto.doc_data);
+      if (createUserDocDto.doc_data) {
+        const dataString =
+          typeof createUserDocDto.doc_data === 'string'
+            ? createUserDocDto.doc_data
+            : JSON.stringify(createUserDocDto.doc_data);
 
         // Encrypt the JSON string
-        createUserDocDto.doc_data =
-          this.encryptionService.encrypt(jsonDataString);
+        createUserDocDto.doc_data = this.encryptionService.encrypt(dataString);
       }
+
       if (!createUserDocDto?.user_id) {
         createUserDocDto.user_id = userDetails?.user_id;
       }
 
       // Create the new document entity for the database
-      const savedDoc = await this.saveDoc(createUserDocDto);
-      savedDocs.push(savedDoc);
+      try {
+        const savedDoc = await this.saveDoc(createUserDocDto);
+        savedDocs.push(savedDoc);
 
-      await this.writeToFile(createUserDocDto, userFilePath, savedDoc);
+        await this.writeToFile(createUserDocDto, userFilePath, savedDoc);
+      } catch (error) {
+        Logger.error('Error processing document:', error);
+      }
     }
 
     // Update profile based on documents
