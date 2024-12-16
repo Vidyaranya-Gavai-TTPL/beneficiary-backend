@@ -9,6 +9,10 @@ import {
   UseGuards,
   Req,
   ParseUUIDPipe,
+  Delete,
+  InternalServerErrorException,
+  UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import {
@@ -178,5 +182,27 @@ export class UserController {
     @Body() requestBody: { filters: any; search: string },
   ) {
     return this.userService.findAllApplicationsByUserId(requestBody);
+  }
+
+  @Delete('/delete-doc/:doc_id')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Delete a document' })
+  @ApiBasicAuth('access-token')
+  @ApiResponse({ status: 200, description: 'Document deleted successfully' })
+  @ApiResponse({ status: 400, description: 'Document not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async deleteDoc(@Req() req: Request, @Param('doc_id') doc_id: string) {
+    try {
+      return await this.userService.delete(req, doc_id);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      Logger.error('Failed to delete document:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while processing your request',
+      );
+    }
   }
 }
