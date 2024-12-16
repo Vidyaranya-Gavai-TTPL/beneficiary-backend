@@ -11,6 +11,8 @@ import {
   ParseUUIDPipe,
   Delete,
   InternalServerErrorException,
+  UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import {
@@ -194,7 +196,13 @@ export class UserController {
     try {
       return await this.userService.delete(req, doc_id);
     } catch (error) {
-      throw new InternalServerErrorException('Failed to delete document');
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      Logger.error('Failed to delete document:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while processing your request',
+      );
     }
   }
 }
