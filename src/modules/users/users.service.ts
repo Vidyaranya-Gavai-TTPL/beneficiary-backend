@@ -827,7 +827,13 @@ export class UserService {
     }
   }
 
-  async delete(doc_id: string, sso_id: string) {
+  async delete(req: any, doc_id: string) {
+    const IsValidUser = req?.user;
+    if (!IsValidUser) {
+      throw new UnauthorizedException('User is not authenticated');
+    }
+    const sso_id = IsValidUser.keycloak_id;
+
     // Get user_id of logged in user
     const user = await this.userRepository.findOne({
       where: { sso_id: sso_id },
