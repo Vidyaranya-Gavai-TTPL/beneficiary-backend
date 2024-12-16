@@ -70,6 +70,9 @@ export default class ProfilePopulator {
   }
 
   private convertToTwoDecimalPercentage(input: string | number): string {
+    if (input === '' || input === null || input === undefined) {
+      return null;
+    }
     if (typeof input === 'string') {
       const parsed = parseFloat(input);
       if (isNaN(parsed)) {
@@ -214,7 +217,7 @@ export default class ProfilePopulator {
 
   private handleMarksValue(vc: any, pathValue: any): string | null {
     let value = this.getValue(vc, pathValue);
-    if (value === null) return null;
+    if (!value) return null;
 
     value = this.convertToTwoDecimalPercentage(value);
     return value;
