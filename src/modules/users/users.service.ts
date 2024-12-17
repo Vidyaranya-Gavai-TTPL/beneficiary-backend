@@ -880,7 +880,7 @@ export class UserService {
       marksheet: ['previousYearMarks'],
     };
 
-    const fields = fieldsArray[existingDoc.doc_subtype];
+    const fields = fieldsArray[existingDoc.doc_subtype] || [];
 
     for (const field of fields) {
       if (field === 'middleName')
