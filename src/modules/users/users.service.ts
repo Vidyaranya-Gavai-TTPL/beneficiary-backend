@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository, DataSource } from 'typeorm';
+import { ILike, Repository, QueryRunner } from 'typeorm';
 import { User } from '../../entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateUserDocDTO } from './dto/user_docs.dto';
@@ -43,7 +43,6 @@ export class UserService {
     private readonly userApplicationRepository: Repository<UserApplication>,
     private readonly keycloakService: KeycloakService,
     private readonly profilePopulator: ProfilePopulator,
-    private readonly dataSource: DataSource,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -843,8 +842,12 @@ export class UserService {
     }
   }
 
-  async resetInUsers(field: string, existingDoc: UserDoc) {
-    await this.dataSource
+  async resetInUsers(
+    field: string,
+    existingDoc: UserDoc,
+    queryRunner: QueryRunner,
+  ) {
+    await queryRunner.manager
       .getRepository(User)
       .createQueryBuilder()
       .update(User)
@@ -853,8 +856,12 @@ export class UserService {
       .execute();
   }
 
-  async resetInUserInfo(field: string, existingDoc: UserDoc) {
-    await this.dataSource
+  async resetInUserInfo(
+    field: string,
+    existingDoc: UserDoc,
+    queryRunner: QueryRunner,
+  ) {
+    await queryRunner.manager
       .getRepository(UserInfo)
       .createQueryBuilder()
       .update(UserInfo)
@@ -863,7 +870,7 @@ export class UserService {
       .execute();
   }
 
-  async resetField(existingDoc: UserDoc) {
+  async resetField(existingDoc: UserDoc, queryRunner: QueryRunner) {
     const fieldsArray = {
       aadhaar: ['middleName', 'fatherName'],
       casteCertificate: ['caste'],
@@ -876,8 +883,9 @@ export class UserService {
     const fields = fieldsArray[existingDoc.doc_subtype];
 
     for (const field of fields) {
-      if (field === 'middleName') await this.resetInUsers(field, existingDoc);
-      else await this.resetInUserInfo(field, existingDoc);
+      if (field === 'middleName')
+        await this.resetInUsers(field, existingDoc, queryRunner);
+      else await this.resetInUserInfo(field, existingDoc, queryRunner);
     }
   }
 
@@ -932,7 +940,7 @@ export class UserService {
       await queryRunner.startTransaction();
       await queryRunner.manager.remove(existingDoc);
       // Reset the field along with deleting the document
-      await this.resetField(existingDoc);
+      await this.resetField(existingDoc, queryRunner);
       await queryRunner.commitTransaction();
     } catch (error) {
       Logger.error('Error while deleting the document: ', error);
