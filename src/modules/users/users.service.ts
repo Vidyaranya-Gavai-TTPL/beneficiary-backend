@@ -872,7 +872,7 @@ export class UserService {
 
   async resetField(existingDoc: UserDoc, queryRunner: QueryRunner) {
     const fieldsArray = {
-      aadhaar: ['middleName', 'fatherName'],
+      aadhaar: ['middleName', 'fatherName', 'gender', 'dob'],
       casteCertificate: ['caste'],
       enrollmentCertificate: ['class', 'studentType'],
       incomeCertificate: ['annualIncome'],
